@@ -4,7 +4,7 @@
  */
 /* eslint-disable */
 /* global describe, beforeEach, it, expect */
-import {expect} from "chai";
+import {beforeEach, beforeAll, describe, expect, it} from "vitest";
 import util from "../assets/util";
 import {$COMMON, $FUNNEL, $SHAPE} from "../../src/config/classes";
 
@@ -17,7 +17,7 @@ describe("SHAPE FUNNEL", () => {
 	});
 
 	describe("default funnel", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -81,7 +81,7 @@ describe("SHAPE FUNNEL", () => {
 			expect(path).to.be.equal(expected);
 		});
 
-		it("data shape hide correctly?", done => {
+		it("data shape hide correctly?", () => new Promise(done => {
 			const {internal} = chart;
 			const {$el: {funnel}} = internal;
 			const targetId = "data4";
@@ -101,11 +101,11 @@ describe("SHAPE FUNNEL", () => {
 
 				expect(accumulatedHeight).to.be.equal(internal.state.current.height);
 
-				done();
-			}, 300);
-		});
+				done(1);
+			}, 350);
+		}));
 
-		it("data shape hide -> show correctly?", done => {
+		it("data shape hide -> show correctly?", () => new Promise(done => {
 			const {internal} = chart;
 			const {$el: {funnel}} = internal;
 			const targetId = "data4";
@@ -123,9 +123,9 @@ describe("SHAPE FUNNEL", () => {
 
 				expect(parseInt(`${accumulatedHeight}`)).to.be.equal(internal.state.current.height);
 
-				done();
-			}, 300);
-		});
+				done(1);
+			}, 350);
+		}));
 
 		it("should .tooltip.show/hide() API works", () => {
 			const targetId = "data1";
@@ -161,8 +161,44 @@ describe("SHAPE FUNNEL", () => {
 		});
 	});
 
+	describe("padding option", () => {
+		beforeAll(() => {
+			args = {
+				data: {
+					columns: [
+						["data1", 50],
+						["data2", 50],
+						["data3", 50]
+					],
+					type: "funnel"
+				},
+				padding: {
+					top: 20,
+					bottom: 20,
+					left: 20,
+					right:20
+				},
+				funnel: {
+					neck: {
+						width: 200,
+						height: 100
+					}
+				}
+			};
+		});
+
+		it("check path value with padding", () => {
+			const {funnel} = chart.internal.$el;
+			const expectedClipPath = "M0,0L600,0L400,310L400,410L200,410L200,310L0,0z";
+			const expectedBackgroundPath = "M20,20L620,20L420,330L420,430L220,430L220,330L20,20z";
+
+			expect(funnel.attr("clip-path").indexOf(expectedClipPath) > -1).to.be.true;
+			expect(funnel.select(`.${$FUNNEL.funnelBackground}`).attr("d").indexOf(expectedBackgroundPath) > -1).to.be.true;
+		});
+	});
+
 	describe("neck option", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -247,7 +283,7 @@ describe("SHAPE FUNNEL", () => {
 	});
 
 	describe(".load() API", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -267,7 +303,7 @@ describe("SHAPE FUNNEL", () => {
 			};
 		});
 
-		it("should dynamic data load work", done => {
+		it("should dynamic data load work", () => new Promise(done => {
 			chart.load({
 				columns: [
 					["data5", 30],
@@ -285,12 +321,12 @@ describe("SHAPE FUNNEL", () => {
 					expect(shapes.size()).to.be.equal(6);
 					expect(accumulatedHeight).to.be.equal(rect.height);
 
-					done();
+					done(1);
 				}
 			});
-		});
+		}));
 
-		it("should dynamic data load w/unload work", done => {
+		it("should dynamic data load w/unload work", () => new Promise(done => {
 			chart.load({
 				columns: [
 					["data5", 80],
@@ -309,9 +345,44 @@ describe("SHAPE FUNNEL", () => {
 					expect(shapes.size()).to.be.equal(4);
 					expect(accumulatedHeight).to.be.equal(rect.height);
 
-					done();
+					done(1);
 				}
 			});
+		}));
+	});
+
+	describe(".unload() API", () => {
+		beforeAll(() => {
+			args = {
+				data: {
+					columns: [
+						["data1", 50],
+						["data2", 50],
+						["data3", 50],
+					],
+					type: "funnel"
+				},
+				legend: {
+					show: false
+				}
+			};
 		});
+
+		it("should unload and shape resized correctly.", () => new Promise(done => {
+			// when
+			chart.unload({
+				ids: ["data1"],
+				done() {
+					const {internal: {$el}} = this;
+					const targets = this.internal.$el.funnel.selectAll(`.${$COMMON.target}`);
+					const height = targets.data().reduce((a, c) => a.ratio + c.ratio);
+
+					expect(targets.size()).to.be.equal(2);
+					expect(+$el.svg.attr("height")).to.be.equal(height);
+
+					done(1);
+				}
+			});			
+		}));
 	});
 });

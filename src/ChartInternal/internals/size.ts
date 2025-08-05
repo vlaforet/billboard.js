@@ -5,7 +5,15 @@
 import {$AXIS, $SUBCHART} from "../../config/classes";
 import {document} from "../../module/browser";
 import {KEY} from "../../module/Cache";
-import {capitalize, ceil10, isEmpty, isNumber, isString, isUndefined} from "../../module/util";
+import {
+	capitalize,
+	ceil10,
+	getBoundingRect,
+	isEmpty,
+	isNumber,
+	isString,
+	isUndefined
+} from "../../module/util";
 
 export default {
 	/**
@@ -47,8 +55,8 @@ export default {
 
 		while (v < 30 && parent && parent.tagName !== "BODY") {
 			try {
-				v = parent.getBoundingClientRect()[key];
-			} catch (e) {
+				v = getBoundingRect(parent, true)[key];
+			} catch {
 				if (offsetName in parent) {
 					// In IE in certain cases getBoundingClientRect
 					// will cause an "unspecified error"
@@ -103,12 +111,15 @@ export default {
 			const label = $el.main.select(`.${leftAxisClass}-label`);
 
 			if (!label.empty()) {
-				labelWidth = label.node().getBoundingClientRect().left;
+				labelWidth = getBoundingRect(label.node()).left;
 			}
 		}
 
-		const svgRect = leftAxis && hasLeftAxisRect ? leftAxis.getBoundingClientRect() : {right: 0};
-		const chartRectLeft = $el.chart.node().getBoundingClientRect().left + labelWidth;
+		const svgRect = leftAxis && hasLeftAxisRect ?
+			getBoundingRect(leftAxis, !withoutRecompute) :
+			{right: 0};
+		const chartRectLeft = getBoundingRect($el.chart.node(), !withoutRecompute).left +
+			labelWidth;
 		const hasArc = $$.hasArcType();
 		const svgLeft = svgRect.right - chartRectLeft -
 			(hasArc ? 0 : $$.getCurrentPaddingByDirection("left", withoutRecompute));
@@ -132,11 +143,16 @@ export default {
 
 	updateSvgSize(): void {
 		const $$ = this;
-		const {state: {clip, current, hasAxis, width, height}, $el: {svg}} = $$;
+		const {config, state: {clip, current, hasAxis, width, height}, $el: {svg}} = $$;
 
-		svg
-			.attr("width", current.width)
-			.attr("height", current.height);
+		if (config.resize_auto === "viewBox") {
+			svg
+				.attr("viewBox", `0 0 ${current.width} ${current.height}`);
+		} else {
+			svg
+				.attr("width", current.width)
+				.attr("height", current.height);
+		}
 
 		if (hasAxis) {
 			const brush = svg.select(`.${$SUBCHART.brush} .overlay`);
@@ -255,7 +271,7 @@ export default {
 				padding += 1;
 			}
 		}
-
+		// console.log(type, padding + (axisSize * axesLen) - gap)
 		return padding + (axisSize * axesLen) - gap;
 	},
 

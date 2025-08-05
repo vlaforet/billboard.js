@@ -6,8 +6,8 @@
 [![Latest Version][badge-latest]][link-version] [![Next version][badge-next]][link-version] [![bb][badge-@billboard.js/react]][link-@billboard.js/react]<br> 
  [![semantic-release][badge-semantic-release]][link-semantic-release] ![React][badge-react]
 
-![CI Status][badge-ci-status] [![Coverage Status][badge-coverage]][link-coverage] [![Known Vulnerabilities][badge-snyk]][link-snyk] 
-[![download][badge-download]][link-download] [![jsDelivr][badge-jsDelivr]][link-jsDelivr] [![gzip size][badge-gzip-size]][link-gzip-size]
+[![download][badge-download]][link-download] [![download][badge-download-weekly]][link-download] [![jsDelivr][badge-jsDelivr]][link-jsDelivr] [![jsDelivr][badge-jsDelivr-weekly]][link-jsDelivr]<br>
+![CI Status][badge-ci-status] [![Coverage Status][badge-coverage]][link-coverage] [![Known Vulnerabilities][badge-snyk]][link-snyk] [![gzip size][badge-gzip-size]][link-gzip-size]
 
 billboard.js is a re-usable, easy interface JavaScript chart library, based on [D3.js](https://d3js.org/).
 > The name "billboard" comes from the famous `billboard chart` which everybody knows.<br>
@@ -40,7 +40,7 @@ If you have any questions, checkout the previous posts or create a new one at:
 - [Issue with 'question' label](https://github.com/naver/billboard.js/issues?utf8=%E2%9C%93&q=label%3Aquestion)
 
 ## Supported chart types
-<img src="https://naver.github.io/billboard.js/img/chart-types.png?v=13" width=800>
+<img src="https://naver.github.io/billboard.js/img/chart-types.png?v=15" width=800>
 
 ## Download and Installation
 
@@ -74,8 +74,9 @@ You can download the compressed files for production
   - https://naver.github.io/billboard.js/release/[VERSION]/dist/billboard.min.css
 
 ### Packaged version (with D3.js inclusion)
-> Packaged version is not an official distribution.
-> It's to provide an easy way to load 'billboard.js' with dependency.
+
+> ⚠️ Packaged version is not an official distribution.
+> It's to provide an easy way to load 'billboard.js' with dependencies.
 
  - **Latest**
     - https://naver.github.io/billboard.js/release/latest/dist/billboard.pkgd.js
@@ -87,6 +88,7 @@ You can download the compressed files for production
 </details>
 
 ### Themes
+> [!NOTE]
 > If you want apply themes, simply load one of the theme css file provided instead of the default css file.
 > - [Screenshot Preview](https://github.com/naver/billboard.js/wiki/Themes)
 
@@ -123,6 +125,7 @@ With nightly, you can try upcoming changes prior the official release.
 
 - https://github.com/naver/billboard.js/tree/nightly/dist
 
+> [!NOTE]
 > The version info will be given as the build datetime: `x.x.x-nightly-yyyymmddhhmmss`
 
 There're two ways to install from `nightly` branch directly.
@@ -170,6 +173,7 @@ If you want to use 'billboard.js' without installation, load files directly from
 
 ## Supported Browsers
 
+> [!IMPORTANT]
 > - Basically will work on all SVG and ES6+ supported browsers.
 > - <sup>*</sup>Notes for legacy browsers:
 >   - Recommended to use `packaged` build or construct your own build following [`How to bundle for legacy browsers?`](https://github.com/naver/billboard.js/wiki/How-to-bundle-for-legacy-browsers%3F) instruction.
@@ -183,6 +187,8 @@ If you want to use 'billboard.js' without installation, load files directly from
  :---: | :---:
  4.x ~ 5.x | 1.x ~ 2.x
  6.x+ | 3.x+
+
+# Getting Started
 
 Load billboard.js after D3.js.
 
@@ -201,6 +207,7 @@ Load billboard.js after D3.js.
 ```
 
 or use importing ESM.
+> [!TIP]
 > 📌 Also check: [How to load as ESM directly from the browser?](https://github.com/naver/billboard.js/wiki/How-to-load-as-ESM-directly-from-the-browser%3F)
 
 ```js
@@ -219,7 +226,7 @@ import "billboard.js/dist/billboard.css";
 import "billboard.js/dist/theme/insight.css"
 ```
 
-> **Note**
+> [!NOTE]
 > - For migration from C3.js, checkout the [migration guide](https://github.com/naver/billboard.js/wiki/How-to-migrate-from-C3.js%3F).
 > - If has an issue bundling for legacy browsers, checkout "[How to bundle for legacy browsers?](https://github.com/naver/billboard.js/wiki/How-to-bundle-for-legacy-browsers%3F)".
 
@@ -281,7 +288,9 @@ THE SOFTWARE.
 
 <!-- badges -->
 [badge-download]: https://img.shields.io/npm/dm/billboard.js.svg?style=flat
+[badge-download-weekly]: https://img.shields.io/npm/dw/billboard.js
 [badge-jsDelivr]: https://data.jsdelivr.com/v1/package/npm/billboard.js/badge?style=rounded
+[badge-jsDelivr-weekly]: https://img.shields.io/jsdelivr/npm/hw/billboard.js
 [badge-ci-status]: https://github.com/naver/billboard.js/workflows/CI/badge.svg
 [badge-coverage]: https://coveralls.io/repos/github/naver/billboard.js/badge.svg?branch=master&v1
 [badge-snyk]: https://snyk.io/test/github/naver/billboard.js/badge.svg?targetFile=package.json

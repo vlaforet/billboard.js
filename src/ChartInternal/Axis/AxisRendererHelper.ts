@@ -4,13 +4,14 @@
  * @ignore
  */
 import type {d3Selection} from "../../../types/types";
-import {isDefined, isNumber, isString, isValue} from "../../module/util";
+import {getBBox, isDefined, isNumber, isString, isValue} from "../../module/util";
 import {getScale} from "../internals/scale";
 
 export default class AxisRendererHelper {
 	private owner;
 	private config;
 	private scale;
+	private charSize = {};
 
 	constructor(owner) {
 		const scale = getScale();
@@ -30,34 +31,40 @@ export default class AxisRendererHelper {
 
 	/**
 	 * Compute a character dimension
-	 * @param {d3.selection} node <g class=tick> node
+	 * @param {string} orient Axis orientation
+	 * @param {d3.selection} text SVG text selection
+	 * @param {boolean} memoize memoize the calculated size
 	 * @returns {{w: number, h: number}}
 	 * @private
 	 */
-	static getSizeFor1Char(node?) {
+	getSizeFor1Char(orient: "top" | "bottom" | "left" | "right", text: d3Selection,
+		memoize = true): {w: number, h: number} {
 		// default size for one character
 		const size = {
 			w: 5.5,
 			h: 11.5
 		};
 
-		!node.empty() && node.select("text")
+		if (this.charSize[orient] && memoize) {
+			return this.charSize[orient];
+		}
+
+		!text.empty() && text
 			.text("0")
-			.call(el => {
+			.call((el: d3Selection) => {
 				try {
-					const {width, height} = el.node().getBBox();
+					const {width, height} = getBBox(el.node(), true);
 
 					if (width && height) {
 						size.w = width;
 						size.h = height;
 					}
-				} catch (e) {
 				} finally {
 					el.text("");
 				}
 			});
 
-		this.getSizeFor1Char = () => size;
+		this.charSize[orient] = size;
 
 		return size;
 	}
@@ -75,9 +82,11 @@ export default class AxisRendererHelper {
 			value => `translate(0,${value})`;
 
 		return (selection, scale) => {
-			selection.attr("transform", d => (
-				isValue(d) ? fn(Math.ceil(scale(d))) : null
-			));
+			selection.attr("transform", d => {
+				const x = scale(d);
+
+				return isValue(d) ? fn(x) : null;
+			});
 		};
 	}
 
@@ -173,7 +182,7 @@ export default class AxisRendererHelper {
 			// https://github.com/naver/billboard.js/issues/2140
 			try {
 				transitionSelection = selection.transition(config.transition);
-			} catch (e) {}
+			} catch {}
 		}
 
 		return transitionSelection;

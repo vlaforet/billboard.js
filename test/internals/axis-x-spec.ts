@@ -4,7 +4,7 @@
  */
 /* eslint-disable */
 // @ts-nocheck
-import {expect} from "chai";
+import {beforeEach, beforeAll, afterAll, describe, expect, it} from "vitest";
 import {$AXIS} from "../../src/config/classes";
 import util from "../assets/util";
 
@@ -151,7 +151,7 @@ describe("X AXIS", function() {
 		});
 
 		describe("subchart", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -185,7 +185,7 @@ describe("X AXIS", function() {
 		});
 
 		describe("zoom", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -216,7 +216,7 @@ describe("X AXIS", function() {
 				
 				const {zoom} = chart.internal.scale;
 
-				expect(lines.attr("d")).to.be.equal("M1794,390.583L1196,227.858L597,323.579L-1,36.417L-599,275.718");
+				expect(lines.attr("d")).to.be.equal("M1797,390.583L1198,227.858L599,323.579L0,36.417L-599,275.718");
 
 				expect(zoom(2) - zoom(3)).to.be.closeTo(600, 5);
 
@@ -229,7 +229,7 @@ describe("X AXIS", function() {
 		});
 
 		describe("x Axis dimension", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						x: "x",
@@ -290,7 +290,7 @@ describe("X AXIS", function() {
 		});
 
 		describe("tick.text.inner", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						x: "x",
@@ -360,7 +360,7 @@ describe("X AXIS", function() {
 	});
 
 	describe("axis.x.forceAsSingle", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 				  columns: [

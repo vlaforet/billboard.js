@@ -41,7 +41,7 @@ function getFormattedText<T = string>(id: T, formatted = true): T {
 	let text = config.data_names[id] ?? id;
 
 	if (formatted && isFunction(config.legend_format)) {
-		text = config.legend_format(text);
+		text = config.legend_format(text, id !== text ? id : undefined);
 	}
 
 	return text;
@@ -294,14 +294,15 @@ export default {
 		const $$ = this;
 		const {current, isLegendRight, legendItemHeight, legendStep} = $$.state;
 		const isFitPadding = $$.config.padding?.mode === "fit";
-
-		return $$.config.legend_show ?
+		const height = $$.config.legend_show ?
 			(
 				isLegendRight ? current.height : (
-					isFitPadding ? 10 : Math.max(20, legendItemHeight)
+					Math.max(isFitPadding ? 10 : 20, legendItemHeight)
 				) * (legendStep + 1)
 			) :
 			0;
+
+		return height;
 	},
 
 	/**
@@ -461,7 +462,10 @@ export default {
 				.on(interaction.dblclick ? "dblclick" : "click",
 					interaction || isFunction(config.legend_item_onclick) ?
 						function(event, id) {
-							if (!callFn(config.legend_item_onclick, api, id)) {
+							if (
+								!callFn(config.legend_item_onclick, api, id,
+									!state.hiddenTargetIds.includes(id))
+							) {
 								const {altKey, target, type} = event;
 
 								if (type === "dblclick" || altKey) {
@@ -492,7 +496,10 @@ export default {
 			!isTouch && item
 				.on("mouseout", interaction || isFunction(config.legend_item_onout) ?
 					function(event, id) {
-						if (!callFn(config.legend_item_onout, api, id)) {
+						if (
+							!callFn(config.legend_item_onout, api, id,
+								!state.hiddenTargetIds.includes(id))
+						) {
 							d3Select(this).classed($FOCUS.legendItemFocused, false);
 
 							if (hasGauge) {
@@ -505,7 +512,10 @@ export default {
 					null)
 				.on("mouseover", interaction || isFunction(config.legend_item_onover) ?
 					function(event, id) {
-						if (!callFn(config.legend_item_onover, api, id)) {
+						if (
+							!callFn(config.legend_item_onover, api, id,
+								!state.hiddenTargetIds.includes(id))
+						) {
 							d3Select(this).classed($FOCUS.legendItemFocused, true);
 
 							if (hasGauge) {

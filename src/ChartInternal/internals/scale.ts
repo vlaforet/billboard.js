@@ -15,12 +15,12 @@ import type {IDataRow, IGridData} from "../data/IData";
 /**
  * Get scale
  * @param {string} [type='linear'] Scale type
- * @param {number} [min] Min range
- * @param {number} [max] Max range
+ * @param {number|Date} [min] Min range
+ * @param {number|Date} [max] Max range
  * @returns {d3.scaleLinear|d3.scaleTime} scale
  * @private
  */
-export function getScale(type = "linear", min = 0, max = 1): any {
+export function getScale<T = IDataRow["x"]>(type = "linear", min?: T, max?: T): any {
 	const scale = ({
 		linear: d3ScaleLinear,
 		log: d3ScaleSymlog,
@@ -32,7 +32,7 @@ export function getScale(type = "linear", min = 0, max = 1): any {
 	scale.type = type;
 	/_?log/.test(type) && scale.clamp(true);
 
-	return scale.range([min, max]);
+	return scale.range([min ?? 0, max ?? 1]);
 }
 
 export default {
@@ -99,10 +99,15 @@ export default {
 		const $$ = this;
 		const offset = offsetValue || (() => $$.axis.x.tickOffset());
 		const isInverted = $$.config.axis_x_inverted;
-		const scale = function(d, raw) {
-			const v = scaleValue(d) + offset();
 
-			return raw ? v : Math.ceil(v);
+		/**
+		 * Get scaled value
+		 * @param {object} d Data object
+		 * @returns {number}
+		 * @private
+		 */
+		const scale = function(d: IDataRow): number {
+			return scaleValue(d) + offset();
 		};
 
 		// copy original scale methods
@@ -250,7 +255,7 @@ export default {
 			value = config.axis_x_categories.indexOf(value);
 		}
 
-		return Math.ceil(fn(value));
+		return fn(value);
 	},
 
 	yv(d: IGridData): number {
@@ -258,7 +263,7 @@ export default {
 		const {scale: {y, y2}} = $$;
 		const yScale = d.axis && d.axis === "y2" ? y2 : y;
 
-		return Math.ceil(yScale($$.getBaseValue(d)));
+		return yScale($$.getBaseValue(d));
 	},
 
 	subxx(d: IDataRow): number | null {

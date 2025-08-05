@@ -3,7 +3,7 @@
  * billboard.js project is licensed under the MIT license
  */
 /* eslint-disable */
-import {expect} from "chai";
+import {beforeEach, beforeAll, describe, expect, it} from "vitest";
 import util from "../assets/util";
 
 describe("API export", () => {
@@ -26,17 +26,17 @@ describe("API export", () => {
 	});
 
 	describe("Basic export functionalities", () => {
-		it("should invoke a callback when ready", done => {
+		it("should invoke a callback when ready", () => new Promise(done => {
 			function exportCallback(dataUrl) {
 				expect(dataUrl).to.not.be.equal("");
-				done();
+				done(1);
 			}
 
 			expect(/^data:image\/svg\+xml;base64,.+/.test(chart.export())).to.be.true;
 			chart.export(null, exportCallback);
-		});
+		}));
 
-		it("should export chart as image/png", done => {
+		it("should export chart as image/png", () => new Promise(done => {
 			function exportCallback(dataUrl) {
 				const link: any = document.createElement("link");
 
@@ -44,13 +44,13 @@ describe("API export", () => {
 				link.href = dataUrl;
 				expect(link.getAttribute("href").length).to.be.not.equal(0);
 
-				done();
+				done(1);
 			}
 
 			chart.export({mimeType: "image/png"}, exportCallback);
-		});
+		}));
 
-		it("should export in different size", done => {
+		it("should export in different size", () => new Promise(done => {
 			const expectedDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAJYCAYAAA";
 
 			setTimeout(() => {
@@ -59,12 +59,12 @@ describe("API export", () => {
 				}, data => {
 					expect(data.indexOf(expectedDataURL) >= 0).to.be.true;
 					
-					done();
+					done(1);
 				});
-			}, 500);
-		});
+			}, 350);
+		}));
 
-		it("should export in different aspectRatio", done => {
+		it("should export in different aspectRatio", () => new Promise(done => {
 			const expectedDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAEsCAYAAACG+vy+AAA";
 
 			setTimeout(() => {
@@ -73,10 +73,10 @@ describe("API export", () => {
 				}, data => {
 					expect(data.indexOf(expectedDataURL) > -1).to.be.true;
 
-					done();
+					done(1);
 				});
-			}, 500);
-		});
+			}, 350);
+		}));
 
 		it("set options", () => {
 			args = {
@@ -118,16 +118,16 @@ describe("API export", () => {
 			};
 		});
 
-		it("should export custom points properly", done => {
+		it("should export custom points properly", () => new Promise(done => {
 			const expectedDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAA";
 
 			setTimeout(() => {
 				chart.export(null, data => {
 					expect(data.indexOf(expectedDataURL) > -1).to.be.true;
-					done();
+					done(1);
 				});
-			}, 500);
-		});
+			}, 350);
+		}));
 	
 		it("should export valid svg even with weird css", () => {
 			document.body.innerHTML += `<style>@font-face{src:url("#&<>'\0");}</style>`;
@@ -145,7 +145,7 @@ describe("API export", () => {
 	});
 
 	describe("Additional functionalities", () => {
-		before(() => { 
+		beforeAll(() => { 
 			args = {
 				svg: {
 					classname: "export-preserve-font-style"
@@ -201,9 +201,23 @@ describe("API export", () => {
 
 			// pattern for local: preserveFontStyle=true
 			[
-				"fvvffeIxM58XrgmUMC0SNAARi9nDKiAAjwhhcARJoIHYFUKvVBAE8WOPZ7AO",
-				"bMh8hbpc48ut3UqlbpHVTcVEV1rrbX2nj17NreBKRce69VEQHtib0KH9wfMuHmnNRmtc",
-				"FIFP52aPiu66mVdn4sl1yFwBoCIgBLrzXo5SlXNQwb9Cn1PKYRZRvpGmo"
+				"BD7f3dolQSIIE6JjBYB3D9LAtz1h5CuB36FvSr0HWhgVj6PESehdq9fhvD",
+				"zPI9F/BFoRpBmbdjyc89MYSZDZHTWBmbtIJC1cdRp9xFmo93GKusODe44GcXn",
+				"7mj5wLZll4qBMfn4j3fMUMKCtHwIrdOT6uaNJu"
+			],
+			
+			// pattern for webdriverio
+			[
+				"nSetJ0vvOG1XcoZ8BQEeD3w9CCB6BGIkmCiAIze",
+				"5Ku10DhdnT36vaRow3ZSgXoFLMsSYJMwL9XnRanBgYGBojufZVlvBCChjpwQMZJcsj",
+				"ANwDC7nf6iqhRcXno2cQP2wnXM4qpFnSLACzpHlfYysmAV1jezaWxGgmFrai6bp9Y6Ryp2AaM"
+			],
+
+			// pattern for playwright
+			[
+				"31YqlQ4kAUzcNOyQCCSKAAlgonCzs7QgQAKYFktRzrAIDA8PnyciH2vz3va",
+				"VSxTBFAVCvG9EcqwrJwaBEx59kIYM9JQYJFFMGbYFyyozdCPQ4p7",
+				"2vI8zkABqEdwKQD1iANHAPWIAwWgHnHgCGDV4qCTYBoXGfC6I05zJgMYW4lmeko"
 			],
 
 			// pattern for CI: preserveFontStyle=false
@@ -215,13 +229,17 @@ describe("API export", () => {
 
 			// pattern for CI: preserveFontStyle=true
 			[
-				"DiWRLpDAhEQaGQFMA9gzgRjWwG4wRR1ewOwq4C2jBeAT4UrgFPVb0MBGEHGaaImAjzh",
-				"H0OkOuguimMPAoMXokgcw9E9im3ldJ+gPcKFJXdKBQPVQTh5PWSG3TmjT",
-				"RrAEqAxCwmQAAmQAAmQAAm4TIAG0GX1GDsJkAAJkAAJkAAJlECABr"
+				"ATh6xb5wFzqdedEkwF6TQB8CpTqAe6CGC6H3Q6+EBmJP89qDHDYTaN8q7wkyYG0m8BZYmx",
+				"GYdmVuXbFVidP90zNLmUE+bXECj4z82vTg5xDz7U9Gfu8PT444+ct/jX9p1281XXPglXLp+FeuOGS",
+				"P7bcvHKGWRcJkECdEaADWGcXlMMhgWoQeOXyCW4wWqQv9qSr3StnT+va0q09/GFqy752r5zlmW6Hei"
+			],
+			[
+				"qZzbE7syTcJEAUFG9elENOxYMbRK4NKqeiHMoZDASymyEBBET4I4TzBRFJsrsEeJUAQUEEgcitgii3QS5BDrMJ5Njp5",
+				"H8bPnTv343Uz4PoYKEdJAhLVAFBx7gZSFFNIoGgCF3d3d29RdCtsgARqgICqfjOdTp9YA0PhEEiABLIIRDUAdBhDf0URhQRIYEgEWIkESIAESKCuCUQ1AKzrk8bBkwAJkAAJkAAJkEAhBIJjGAAGJJiSAAmQAAmQAAmQQJ0QYABYJyeawyQBEiCBHgLckgAJkIBE9iEQnjsSIAESIAESIAESIIECCXAGsEBwUT6MvpMACZAACZAACdQ3AQaA9X3"
 			]
 		];
 
-		it("check when 'preserveFontStyle=false'", done => {
+		it("check when 'preserveFontStyle=false'", () => new Promise(done => {
 			chart.export({
 				preserveFontStyle: false
 			}, function(dataUrl) {
@@ -229,11 +247,11 @@ describe("API export", () => {
 					expected.some(pttr => pttr.every(v => dataUrl.indexOf(v) == -1))
 				).to.be.true;
 
-				done();
+				done(1);
 			});
-		});
+		}));
 
-		it("check when 'preserveFontStyle=true'", done => {
+		it("check when 'preserveFontStyle=true'", () => new Promise(done => {
 			const font = new FontFace("Alfa Slab One", "url(https://fonts.gstatic.com/s/alfaslabone/v17/6NUQ8FmMKwSEKjnm5-4v-4Jh2dJhe_escmA.woff2)", {
 				style: "normal",
 				weight: "400"
@@ -261,9 +279,9 @@ describe("API export", () => {
 						.style("margin-left", null)
 						.style("padding-top", null);
 
-					done();
+					done(1);
 				});
 			});
-		});
+		}));
 	});
 });

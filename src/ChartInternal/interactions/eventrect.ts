@@ -4,7 +4,13 @@
  */
 import type {d3Selection} from "../../../types";
 import {$COMMON, $EVENT, $SHAPE} from "../../config/classes";
-import {getPointer, getScrollPosition, isBoolean, isFunction} from "../../module/util";
+import {
+	getBoundingRect,
+	getPointer,
+	getScrollPosition,
+	isBoolean,
+	isFunction
+} from "../../module/util";
 
 export default {
 	/**
@@ -205,8 +211,7 @@ export default {
 			if (eventReceiver) {
 				const scrollPos = getScrollPosition($el.chart.node());
 
-				eventReceiver.rect = rectElement.node()
-					.getBoundingClientRect()
+				eventReceiver.rect = getBoundingRect(rectElement.node(), true)
 					.toJSON();
 
 				eventReceiver.rect.top += scrollPos.y;
@@ -388,7 +393,7 @@ export default {
 				return $$.isWithinShape(this, d);
 			});
 
-		if (shapeAtIndex.empty() && !isTooltipGrouped) {
+		if (shapeAtIndex.empty() && !isTooltipGrouped && config.interaction_onout) {
 			$$.hideGridFocus?.();
 			$$.hideTooltip();
 
@@ -591,7 +596,10 @@ export default {
 					state.event = event;
 
 					// chart is destroyed
-					if (!config || $$.hasArcType() || eventReceiver.currentIdx === -1) {
+					if (
+						!config || $$.hasArcType() || eventReceiver.currentIdx === -1 ||
+						!config.interaction_onout
+					) {
 						return;
 					}
 
@@ -637,7 +645,7 @@ export default {
 	 */
 	generateEventRectsForMultipleXs(eventRectEnter): void {
 		const $$ = this;
-		const {state} = $$;
+		const {config, state} = $$;
 
 		eventRectEnter
 			.on("click", function(event) {
@@ -656,7 +664,7 @@ export default {
 					state.event = event;
 
 					// chart is destroyed
-					if (!$$.config || $$.hasArcType()) {
+					if (!$$.config || $$.hasArcType() || !config.interaction_onout) {
 						return;
 					}
 
@@ -676,9 +684,7 @@ export default {
 
 		const mouse = getPointer(state.event, this);
 		const closest = $$.findClosestFromTargets(targetsToShow, mouse);
-		const sensitivity = config.point_sensitivity === "radius" ?
-			closest.r :
-			config.point_sensitivity;
+		const sensitivity = $$.getPointSensitivity(closest);
 
 		if (!closest) {
 			return;

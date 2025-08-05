@@ -160,8 +160,13 @@ export interface ChartOptions {
 	resize?: {
 		/**
 		 * Indicate if the chart should automatically get resized when the window gets resized.
+		 * - **NOTE:** Available options
+		 *   - true: Enables automatic resize.
+		 *   - false: Disables automatic resize.
+		 *   - "parent": Enables automatic resize when the parent node is resized.
+		 *   - "viewBox": Enables automatic resize, and size will be fixed based on the viewbox.
 		 */
-		auto?: boolean;
+		auto?: boolean | "parent" | "viewBox";
 
 		/**
 		 * Set resize timer option.
@@ -245,7 +250,13 @@ export interface ChartOptions {
 				 */
 				preventDefault?: boolean | number;
 			};
-		}
+		},
+
+		/**
+		 * Enable or disable "onout" event.
+	 	 * When is disabled, defocus(hiding tooltip, focused gridline, etc.) event won't work.
+		 */
+		onout?: boolean;
 	};
 
 	transition?: {
@@ -414,6 +425,7 @@ export interface RegionOptions {
 		text?: string;
 		x?: number;
 		y?: number;
+		center?: "x" | "y" | "xy" | false;
 		color?: string;
 		rotated?: boolean;
 	}
@@ -440,7 +452,7 @@ export interface LegendOptions {
 	 * Change the position of legend.
 	 * Currently bottom, right and inset are supported.
 	 */
-	position?: string;
+	position?: "bottom" | "right" | "inset";
 
 	/**
 	 * Change inset legend attributes.
@@ -450,7 +462,7 @@ export interface LegendOptions {
 	 * - step: defines the max step the lagend has (e.g. If 2 set and legend has 3 legend item, the legend 2 columns).
 	 */
 	inset?: {
-		anchor?: string;
+		anchor?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 		x?: number;
 		y?: number;
 		step?: number;
@@ -507,19 +519,19 @@ export interface LegendOptions {
 		 *    - When set, default `click` interaction will be disabled.
 		 *    - When `interaction.dblclick=true` is set, will be called on double click.
 		 */
-		onclick?(this: Chart, id: string): void;
+		onclick?(this: Chart, id: string, visible: boolean): void;
 
 		/**
 		 * Set mouseover event handler to the legend item.
 		 *  - **NOTE:** When set, default `mouseover` interaction will be disabled.
 		 */
-		onover?(this: Chart, id: string): void;
+		onover?(this: Chart, id: string, visible: boolean): void;
 
 		/**
 		 * Set mouseout event handler to the legend item.
 		 *  - **NOTE:** When set, default `mouseout` interaction will be disabled.
 		 */
-		onout?(this: Chart, id: string): void;
+		onout?(this: Chart, id: string, visible: boolean): void;
 	};
 
 	/**
@@ -552,7 +564,7 @@ export interface LegendOptions {
 	/**
 	 * Set formatter function for legend text.
 	 */
-	format?: (id: string) => string;
+	format?: (id: string, dataId?: string) => string;
 
 	/**
 	 * Show full legend text value using system tooltip(via 'title' element).
@@ -1207,6 +1219,42 @@ export interface Data {
 		 * Rotate label text. Specify degree value in a range of `0 ~ 360`.
 		 */
 		rotate?: number;
+
+		/**
+		 * Add border to data label text.
+		 * NOTE: When set as `true`, styling aren't applied. Hence, need to set using `.bb-text-border` class.
+		 */
+		border?: boolean | {
+			/**
+			 * Border padding. Can be a single number, string or object with top, bottom, left, right properties.
+			 */
+			padding?: number | string | {
+				top?: number;
+				bottom?: number;
+				left?: number;
+				right?: number;
+			};
+
+			/**
+			 * Border radius value.
+			 */
+			radius?: number;
+
+			/**
+			 * Border stroke width.
+			 */
+			strokeWidth?: number;
+
+			/**
+			 * Border stroke color.
+			 */
+			stroke?: string;
+
+			/**
+			 * Border fill color.
+			 */
+			fill?: string;
+		};
 	};
 
 	/**

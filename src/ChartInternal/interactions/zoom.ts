@@ -9,6 +9,7 @@ import {
 	zoomTransform as d3ZoomTransform
 } from "d3-zoom";
 import {$COMMON, $ZOOM} from "../../config/classes";
+import {window} from "../../module/browser";
 import {callFn, diffDomain, getPointer, isFunction} from "../../module/util";
 
 export default {
@@ -22,7 +23,9 @@ export default {
 		$$.scale.zoom = null;
 
 		$$.generateZoom();
-		$$.initZoomBehaviour();
+
+		$$.config.zoom_type === "drag" &&
+			$$.initZoomBehaviour();
 	},
 
 	/**
@@ -71,6 +74,7 @@ export default {
 			const ratio = diffDomain($$.scale.x.orgDomain()) / diffDomain($$.getZoomDomain());
 			const extent = this.orgScaleExtent();
 
+			// https://d3js.org/d3-zoom#zoom_scaleExtent
 			this.scaleExtent([extent[0] * ratio, extent[1] * ratio]);
 
 			return this;
@@ -94,6 +98,11 @@ export default {
 			const newScale = transform[
 				isRotated ? "rescaleY" : "rescaleX"
 			](org.xScale || scale.x);
+
+			// prevent drag zoom to be out of range
+			if (newScale.domain().some(v => /(Invalid Date|NaN)/.test(v.toString()))) {
+				return;
+			}
 
 			const domain = $$.trimXDomain(newScale.domain());
 			const rescale = config.zoom_rescale;
@@ -329,12 +338,19 @@ export default {
 	 */
 	bindZoomOnEventRect(): void {
 		const $$ = this;
-		const {config, $el: {eventRect}} = $$;
+		const {config, $el: {eventRect, svg}} = $$;
 		const behaviour = config.zoom_type === "drag" ? $$.zoomBehaviour : $$.zoom;
 
-		// Since Chrome 89, wheel zoom not works properly
-		// Applying the workaround: https://github.com/d3/d3-zoom/issues/231#issuecomment-802305692
-		$$.$el.svg.on("wheel", () => {});
+		// On Safari, event can't be built inside the svg content
+		// for workaround, register wheel event on <svg> element first
+		// https://bugs.webkit.org/show_bug.cgi?id=226683#c3
+		// https://stackoverflow.com/questions/67836886/wheel-event-is-not-fired-on-a-svg-group-element-in-safari
+		if (
+			window.GestureEvent &&
+			/^((?!chrome|android|mobile).)*safari/i.test(window.navigator?.userAgent)
+		) {
+			svg.on("wheel", () => {});
+		}
 
 		eventRect?.call(behaviour)
 			.on("dblclick.zoom", null);
@@ -351,6 +367,7 @@ export default {
 		let start = 0;
 		let end = 0;
 		let zoomRect;
+		let extent;
 
 		const prop = {
 			axis: isRotated ? "y" : "x",
@@ -361,6 +378,9 @@ export default {
 		$$.zoomBehaviour = d3Drag()
 			.clickDistance(4)
 			.on("start", function(event) {
+				// get extent at first zooming, when is zoomed do not consider
+				extent = $$.scale.zoom ? null : $$.axis.getExtent();
+
 				state.event = event;
 				$$.setDragStatus(true);
 				$$.unselectRect();
@@ -373,7 +393,16 @@ export default {
 						.attr("height", isRotated ? 0 : state.height);
 				}
 
-				start = getPointer(event, this)[prop.index];
+				start = getPointer(event, this as SVGAElement)[prop.index];
+
+				if (extent) {
+					if (start < extent[0]) {
+						start = extent[0];
+					} else if (start > extent[1]) {
+						start = extent[1];
+					}
+				}
+
 				end = start;
 
 				zoomRect
@@ -383,7 +412,15 @@ export default {
 				$$.onZoomStart(event);
 			})
 			.on("drag", function(event) {
-				end = getPointer(event, this)[prop.index];
+				end = getPointer(event, this as SVGAElement)[prop.index];
+
+				if (extent) {
+					if (end > extent[1]) {
+						end = extent[1];
+					} else if (end < extent[0]) {
+						end = extent[0];
+					}
+				}
 
 				zoomRect
 					.attr(prop.axis, Math.min(start, end))

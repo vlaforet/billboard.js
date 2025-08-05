@@ -6,7 +6,15 @@ import {drag as d3Drag} from "d3-drag";
 import {select as d3Select} from "d3-selection";
 import {$ARC, $AXIS, $COMMON, $SHAPE} from "../../config/classes";
 import {KEY} from "../../module/Cache";
-import {emulateEvent, getPointer, isNumber, isObject} from "../../module/util";
+import {
+	emulateEvent,
+	getBoundingRect,
+	getPointer,
+	getTransformCTM,
+	hasViewBox,
+	isNumber,
+	isObject
+} from "../../module/util";
 import type {IArcDataRow} from "../data/IData";
 
 export default {
@@ -64,7 +72,7 @@ export default {
 
 			config.color_onover && $$.setOverColor(isOver, d, isArcishData);
 
-			if (isArcishData && "id") {
+			if (isArcishData) {
 				const suffix = $$.getTargetSelectorSuffix((d as IArcDataRow).id);
 				const selector = hasFunnel || hasTreemap ?
 					`${$COMMON.target + suffix} .${$SHAPE.shape}` :
@@ -152,11 +160,11 @@ export default {
 			d3Drag()
 				.on("drag", function(event) {
 					state.event = event;
-					$$.drag(getPointer(event, this));
+					$$.drag(getPointer(event, <SVGElement>this));
 				})
 				.on("start", function(event) {
 					state.event = event;
-					$$.dragstart(getPointer(event, this));
+					$$.dragstart(getPointer(event, <SVGElement>this));
 				})
 				.on("end", event => {
 					state.event = event;
@@ -183,19 +191,19 @@ export default {
 				hasRadar,
 				hasTreemap
 			},
-			$el: {eventRect, funnel, radar, treemap}
+			$el: {eventRect, funnel, radar, svg, treemap}
 		} = $$;
 		let element = (
 			((hasFunnel || hasTreemap) && eventReceiver.rect) ||
 			(hasRadar && radar.axes.select(`.${$AXIS.axis}-${index} text`)) || (
 				eventRect || $$.getArcElementByIdOrIndex?.(index)
 			)
-		)?.node();
+		)?.node?.();
 
 		if (element) {
 			const isMultipleX = $$.isMultipleX();
 			const isRotated = config.axis_rotated;
-			let {width, left, top} = element.getBoundingClientRect();
+			let {width, left, top} = getBoundingRect(element);
 
 			if (hasAxis && !hasRadar && !isMultipleX) {
 				const coords = eventReceiver.coords[index];
@@ -211,12 +219,20 @@ export default {
 				}
 			}
 
-			const x = left + (mouse ? mouse[0] : 0) + (
+			let x = left + (mouse ? mouse[0] : 0) + (
 				isMultipleX || isRotated ? 0 : (width / 2)
 			);
 
 			// value 4, is to adjust coordinate value set from: scale.ts - updateScales(): $$.getResettedPadding(1)
-			const y = top + (mouse ? mouse[1] : 0) + (isRotated ? 4 : 0);
+			let y = top + (mouse ? mouse[1] : 0) + (isRotated ? 4 : 0);
+
+			if (hasViewBox(svg)) {
+				const ctm = getTransformCTM($$.$el.eventRect.node(), x, y, false);
+
+				x = ctm.x;
+				y = ctm.y;
+			}
+
 			const params = {
 				screenX: x,
 				screenY: y,

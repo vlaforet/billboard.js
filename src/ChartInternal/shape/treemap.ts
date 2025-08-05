@@ -63,6 +63,24 @@ function convertDataToTreemapData(data: IData[]): ITreemapData[] {
 	});
 }
 
+/**
+ * Get hierarchy data
+ * @param {object} data Data object
+ * @returns {Array} Array of hierarchy data
+ * @private
+ */
+function getHierachyData(data) {
+	const $$ = this;
+	const hierarchyData = d3Hierarchy(data).sum(d => d.value);
+	const sortFn = $$.getSortCompareFn(true);
+
+	return [
+		$$.treemap(
+			sortFn ? hierarchyData.sort(sortFn) : hierarchyData
+		)
+	];
+}
+
 export default {
 	initTreemap(): void {
 		const $$ = this;
@@ -79,15 +97,6 @@ export default {
 
 		$$.treemap = d3Treemap()
 			.tile($$.getTreemapTile());
-
-		$$.treemapFn = data => {
-			const hierarchyData = d3Hierarchy(data).sum(d => d.value);
-			const sortFn = $$.getSortCompareFn(true);
-
-			return $$.treemap(
-				sortFn ? hierarchyData.sort(sortFn) : hierarchyData
-			);
-		};
 
 		$el.defs
 			.append("clipPath")
@@ -138,8 +147,10 @@ export default {
 				.on(isTouch ? "touchend" : "mouseout", event => {
 					const data = getTarget(event);
 
-					$$.hideTooltip();
-					$$.setOverOut(false, data);
+					if (config.interaction_onout) {
+						$$.hideTooltip();
+						$$.setOverOut(false, data);
+					}
 				});
 		}
 	},
@@ -198,10 +209,10 @@ export default {
 	updateTargetsForTreemap(targets: IData): void {
 		const $$ = this;
 		const {$el: {treemap}} = $$;
-		const treemapData = $$.treemapFn($$.getTreemapData(targets ?? $$.data.targets));
+		const treemapData = getHierachyData.call($$, $$.getTreemapData(targets ?? $$.data.targets));
 
 		// using $el.treemap reference can alter data, so select treemap <g> again
-		treemap.data([treemapData]);
+		treemap.data($$.filterNullish(treemapData));
 	},
 
 	/**
