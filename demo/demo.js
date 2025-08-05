@@ -19,71 +19,132 @@ var demos = {
 				}
 			}
 		},
-		AreaRangeChart: {
-			options: {
-				data: {
-					x: "x",
-					columns: [
-						["x", "2013-01-01", "2013-01-02", "2013-01-03", "2013-01-04", "2013-01-05", "2013-01-06"],
-						["data1",
-							[150, 140, 110],
-							[155, 130, 115],
-							[160, 135, 120],
-							[135, 120, 110],
-							[180, 150, 130],
-							[199, 160, 125]
+		AreaRangeChart: [
+			{
+				options: {
+					title: {
+						text: "Area line range"
+					},
+					data: {
+						x: "x",
+						columns: [
+							["x", "2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06"],
+							["data1",
+								[150, 140, 110],
+								[155, 130, 115],
+								[160, 135, 120],
+								[135, 120, 110],
+								[180, 150, 130],
+								[199, 160, 125]
+							],
+							["data2", 130, 340, 200, 500, 250, 350]
+
 						],
-						["data2", 130, 340, 200, 500, 250, 350]
-
-					],
-					types: {
-						data1: "area-line-range"
-					}
-				},
-				axis: {
-					x: {
-
-						type: "timeseries",
-						tick: {
-							format: "%Y-%m-%d"
+						types: {
+							data1: "area-line-range"
 						}
-					}
+					},
+					axis: {
+						x: {
+
+							type: "timeseries",
+							tick: {
+								format: "%Y-%m-%d"
+							}
+						}
+					},
+
 				},
+				func: function(chart) {
+					chart.timer = [
+						setTimeout(function() {
+							chart.load({
+								columns: [
+									["data3", [220, 215, 205], [240, 225, 215], [260, 235, 225], [280, 245, 235], [270, 255, 225], [240, 225, 215]],
+								],
+								types: {
+									data3: "area-spline-range"
+								}
+							});
+						}, 1000),
 
+						setTimeout(function() {
+							chart.load({
+								columns: [
+									["data4",
+										{high: 155, low: 145, mid: 150},
+										{high: 200, mid: 190, low: 150},
+										{high: 230, mid: 215, low: 200},
+										{high: 210, mid: 200, low: 180},
+										{high: 220, mid: 210, low: 190},
+										{high: 200, mid: 180, low: 160}
+									]
+								],
+								types: {
+									data4: "area-spline-range"
+								}
+							});
+						}, 1500)
+					];
+				}
 			},
-			func: function(chart) {
-				chart.timer = [
-					setTimeout(function() {
-						chart.load({
-							columns: [
-								["data3", [220, 215, 205], [240, 225, 215], [260, 235, 225], [280, 245, 235], [270, 255, 225], [240, 225, 215]],
+			{
+				options: {
+					title: {
+						text: "Area spline range"
+					},
+					data: {
+						columns: [
+							["data1",
+								[150, 140, 110],
+								[155, 130, 115],
+								[160, 135, 120],
+								[135, 120, 110],
+								[180, 150, 130],
+								[199, 160, 125]
 							],
-							types: {
-								data3: "area-spline-range"
-							}
-						});
-					}, 1000),
-
-					setTimeout(function() {
-						chart.load({
-							columns: [
-								["data4",
-									{high: 155, low: 145, mid: 150},
-									{high: 200, mid: 190, low: 150},
-									{high: 230, mid: 215, low: 200},
-									{high: 210, mid: 200, low: 180},
-									{high: 220, mid: 210, low: 190},
-									{high: 200, mid: 180, low: 160}
-								]
+							["data2",
+								[250, 220, 210],
+								[255, 230, 195],
+								[260, 150, 100],
+								[235, 220, 210],
+								[280, 250, 200],
+								[299, 260, 230]
+							]
+						],
+						type: "area-spline-range"
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "Area step range"
+					},
+					data: {
+						columns: [
+							["data1",
+								[70, 40, 30],
+								[155, 130, 115],
+								[160, 135, 120],
+								[200, 120, 110],
+								[95, 50, 40],
+								[199, 160, 125]
 							],
-							types: {
-								data4: "area-spline-range"
-							}
-						});
-					}, 1500)
-				];
+							["data2",
+								[350, 220, 110],
+								[255, 230, 195],
+								[260, 250, 190],
+								[235, 220, 210],
+								[180, 150, 100],
+								[299, 260, 230]
+							]
+						],
+						type: "area-step-range"
+					}
+				}
 			}
-		},
+		],
 		BarChart: [
 			{
 				options: {
@@ -1170,6 +1231,51 @@ var demos = {
 				}
 			}
 		},
+		AxisEvalTextSize: [
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 50, 20, 10, 40, 15, 25]
+						],
+					},
+					axis: {
+						y2: {
+							show: true
+						}
+					}
+				},
+				style: [
+					"#axisEvalTextSize_1 .bb-axis-x text{font-size: 20px;}",
+					"#AxisEvalTextSize_1 .bb-axis-y text{font-size: 35px;}",
+					"#AxisEvalTextSize_1 .bb-axis-y2 text{font-size: 25px;}"
+				]
+			},
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 50, 20, 10, 40, 15, 25]
+						],
+					},
+					axis: {
+						y2: {
+							show: true
+						},
+						evalTextSize: function(text, id) {
+						// specify manual axis text character size
+						return {
+							x: { w: 30, h: 30},
+						    y: { w: 25, h: 20},
+						    y2: { w: 15.5, h: 20}
+						}[id];
+						}
+					}
+				}
+			}
+		],
 		AxisLabel: {
 			options: {
 				data: {
@@ -1966,28 +2072,81 @@ var demos = {
 				}
 			}
 		},
-		XAxisTickCulling: {
-			options: {
-				data: {
-					columns: [
-						["sample", 30, 200, 100, 400, 150, 250, 30, 200, 100, 400, 150, 250, 30, 200, 100, 400, 150, 250, 200, 100, 400, 150, 250]
-					],
-					type: "line"
-				},
-				axis: {
-					x: {
-						type: "category",
-						tick: {
-							culling: {
-								max: 4 // the number of tick texts will be adjusted to less than this value
+		XAxisTickCulling: [
+			{
+				options: {
+					data: {
+						columns: [
+							["sample", 30, 200, 100, 400, 150, 250, 30, 200, 100, 400, 150, 250, 30, 200, 100, 400, 150, 250, 200, 100, 400, 150, 250]
+						],
+						type: "line"
+					},
+					axis: {
+						x: {
+							type: "category",
+							tick: {
+								culling: {
+									max: 4 // the number of tick texts will be adjusted to less than this value
+								}
+								// for normal axis, default on
+								// for category axis, default off
 							}
-							// for normal axis, default on
-							// for category axis, default off
+						}
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "Culling to start from the first tick",
+					},
+					data: {
+						x: 'periods',
+						type: "line",
+						columns: [
+							["periods", '1999', '2000', '2001', '2002', '2003','2004','2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015','2016'],
+							["data1", 0, 70, 200, 100, 170, 150, 350, 320, 200, 100, 170, 150, 250, 30, 200, 100, 170, 390],
+						]
+					},
+					axis: {
+						x: {
+							tick: {
+								outer: false,
+								culling: {
+									max: 6
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "Culling to start from the last('reversed' way) tick",
+					},
+					data: {
+						x: 'periods',
+						type: "line",
+						columns: [
+							["periods", '1999', '2000', '2001', '2002', '2003','2004','2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015','2016'],
+							["data1", 0, 70, 200, 100, 170, 150, 350, 320, 200, 100, 170, 150, 250, 30, 200, 100, 170, 390],
+						]
+					},
+					axis: {
+						x: {
+							tick: {
+								outer: false,
+								culling: {
+									max: 6,
+									reverse: true
+								}
+							}
 						}
 					}
 				}
 			}
-		},
+		],
 		XAxisTickFitting: {
 			options: {
 				data: {
@@ -2825,6 +2984,83 @@ var demos = {
 				}
 			}
 		],
+		DataLabelBorder: [
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 50, 150, 150, 150, 50, 150],
+							["data3", 100, 100, 40, 100, 150, 50]
+						],
+						types: {
+							data1: "line",
+							data2: "area",
+							data3: "bar"
+						},
+						labels: {
+							border: {
+								padding: "3 5",
+								radius: 0,
+								strokeWidth: 1,
+								stroke: "#ccc",
+								fill: "none"
+							}
+						}
+					}
+				}
+			},
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 130, 280, 200, 300, 250, 180]
+						],
+						type: "bar",
+						labels: {
+							position: {
+								y: -15
+							},
+							border: {
+								padding: {
+									top: 5,
+									bottom: 7,
+									left: 10,
+									right: 15
+								},
+								radius: 13,
+								fill: "none",
+								stroke: "#000",
+								strokeWidth: 2
+							}
+						}
+					}
+				}
+			},
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 200, 350, 150, 400, 300, 220],
+							["data2", 180, 200, 300, 180, 250, 350]
+						],
+						type: "bar",
+						labels: {
+							border: {
+								padding: 7,
+								radius: 5,
+								strokeWidth: 2,
+								stroke: "#ff6b6b",
+								fill: "rgba(255, 255, 255, 1)"
+							}
+						}
+					},
+					axis: {
+						rotated: true
+					}
+				}
+			}
+		],
 		DataLabelColors: [
 			{
 				options: {
@@ -3456,28 +3692,51 @@ d3.select(".chart_area")
 				}
 			}
 		},
-		LegendFormat: {
-			description: "Stay hovering on each of legend items to see full data name text.",
-			options: {
-				data: {
-					columns: [
-						["SELECT idx, title, date, count from TEST_TABLE WHERE idx=5", 2, 3, 5],
-						["very long long data name needed to be", 1, 2, 2],
-					],
-					type: "line"
-				},
-				legend: {
-					format: function(id) {
-						if (id.length > 5) {
-							id = id.substr(0, 5) + "...";
-						}
-			
-						return id;
+		LegendFormat: [
+			{
+				description: "Stay hovering on each of legend items to see full data name text.",
+				options: {
+					data: {
+						columns: [
+							["SELECT idx, title, date, count from TEST_TABLE WHERE idx=5", 2, 3, 5],
+							["very long long data name needed to be", 1, 2, 2],
+						],
+						type: "line"
 					},
-					tooltip: true
+					legend: {
+						format: function(id) {
+							if (id.length > 5) {
+								id = id.substr(0, 5) + "...";
+							}
+				
+							return id;
+						},
+						tooltip: true
+					}
+				}
+			}, 
+			{
+				options: {
+					data: {
+						names: {
+							"data1": "Detailed Name",
+							"data2": "Name Detailed"
+						},
+						columns: [
+							["data1", 71.4],
+							["data2", 10],
+						],
+						type: "gauge"
+					},
+					legend: {
+						format: function(id, dataId) {
+						return id === "Name Detailed" ? dataId : id;
+    },
+						tooltip: true
+					}
 				}
 			}
-		},
+		],
 		LegendItemInteraction: [
 			{
 				description: "<b>Single click + AltKey(Win)/optionKey(Mac)</b><br>or <b>Double click</b> legend item to show/hide data series",
@@ -4312,91 +4571,201 @@ d3.select(".chart_area")
 	},
 
 	Region: {
-		Region: {
-			options: {
-				data: {
-					columns: [
-						["data1", 30, 200, 100, 400, 150, 250, 400],
-						["data2", 830, 1200, 1100, 1400, 1150, 1250, 1500]
-					],
-					type: "line",
-					axes: {
-						data2: "y2"
-					}
-				},
-				axis: {
-					y2: {
-						show: true
-					}
-				},
-				regions: [
-					{axis: "x", end: 1, class: "regionX"},
-					{axis: "x", start: 2, end: 4, class: "regionX"},
-					{axis: "x", start: 5, class: "regionX"},
-					{axis: "y", end: 50, class: "regionY"},
-					{axis: "y", start: 80, end: 140, class: "regionY"},
-					{axis: "y", start: 400, class: "regionY"},
-					{axis: "y2", end: 900, class: "regionY2"},
-					{axis: "y2", start: 1150, end: 1250, class: "regionY2"},
-					{axis: "y2", start: 1300, class: "regionY2"}
-				]
+		Region: [
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250, 400],
+							["data2", 830, 1200, 1100, 1400, 1150, 1250, 1500]
+						],
+						type: "line",
+						axes: {
+							data2: "y2"
+						}
+					},
+					axis: {
+						y2: {
+							show: true
+						}
+					},
+					regions: [
+						{axis: "x", end: 1, class: "regionX"},
+						{axis: "x", start: 2, end: 4, class: "regionX"},
+						{axis: "x", start: 5, class: "regionX"},
+						{axis: "y", end: 50, class: "regionY"},
+						{axis: "y", start: 80, end: 140, class: "regionY"},
+						{axis: "y", start: 400, class: "regionY"},
+						{axis: "y2", end: 900, class: "regionY2"},
+						{axis: "y2", start: 1150, end: 1250, class: "regionY2"},
+						{axis: "y2", start: 1300, class: "regionY2"}
+					]
+				}
+			},
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 100, 150, 130, 200, 220, 190]
+						],
+						axes: {
+							data2: "y2"
+						},
+						type: "line",
+						colors: {
+							data1: "#ff0000"
+						}
+					},
+					axis: {
+						x: {
+							type: "category",
+							categories: [
+								"cat1",
+								"cat2",
+								"cat3",
+								"cat4",
+								"cat5",
+								"cat6"
+							]
+						}
+					},
+					regions: [
+						{
+							axis: "x",
+							start: "cat2",
+							end: "cat3"
+						},
+						{
+							axis: "x",
+							start: "cat5",
+							end: 5
+						}
+					]
+				}
 			}
-		},
-		RegionLabel: {
-			options: {
-				data: {
-					columns: [
-						["data1", 30, 200, 100, 400, 150, 250],
-						["data2", 100, 150, 130, 200, 220, 190],
-					],
-					axes: {
-						data2: "y2",
-					},
-					type: "line",
-					colors: {
-						data1: "#ff0000"
-					}
-				},
-				axis: {
-					y2: {
-						show: true
-					}
-				},
-				regions: [
-					{
-						axis: "x",
-						start: 1,
-						end: 2,
-						class: "regions_class1",
-						label: {
-							text: "Regions 1",
-							color: "red"
+		],
+		RegionLabel: [
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 100, 150, 130, 200, 220, 190],
+						],
+						axes: {
+							data2: "y2",
+						},
+						type: "line",
+						colors: {
+							data1: "#ff0000"
 						}
 					},
-					{
-						axis: "y",
-						start: 100,
-						end: 300,
-						class: "regions_class2",
-						label: {
-							text: "Regions 2",
-							x: 50,
-							color: "blue"
+					axis: {
+						y2: {
+							show: true
 						}
 					},
-					{
-						axis: "y2",
-						start: 200,
-						end: 220,
-						class: "regions_class3",
-						label: {
-							text: "Regions 3",
-							y: 10
+					regions: [
+						{
+							axis: "x",
+							start: 1,
+							end: 2,
+							class: "regions_class1",
+							label: {
+								text: "Regions 1",
+								color: "red"
+							}
+						},
+						{
+							axis: "y",
+							start: 100,
+							end: 300,
+							class: "regions_class2",
+							label: {
+								text: "Regions 2",
+								x: 50,
+								color: "blue"
+							}
+						},
+						{
+							axis: "y2",
+							start: 200,
+							end: 220,
+							class: "regions_class3",
+							label: {
+								text: "Regions 3",
+								y: 10
+							}
 						}
-					}
-				]
+					]
+				}
+			},
+			{
+				options: {
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 100, 150, 130, 200, 220, 190]
+						],
+						axes: {
+							data2: "y2"
+						},
+						type: "line"
+					},
+					axis: {
+						y2: {
+							show: true
+						}
+					},
+					regions: [
+						{
+							axis: "x",
+							start: 1,
+							end: 2,
+							class: "regions_class1",
+							label: {
+								text: "Regions 1",
+								color: "red",
+								center: "xy"
+							}
+						},
+						{
+							axis: "x",
+							start: 3,
+							end: 4,
+							class: "regions_class1",
+							label: {
+								text: "Regions 2",
+								color: "red",
+								center: "y"
+							}
+						},
+						{
+							axis: "y",
+							start: 100,
+							end: 300,
+							class: "regions_class2",
+							label: {
+								text: "Regions 3",
+								color: "blue",
+								center: "xy"
+							}
+						},
+						{
+							axis: "y2",
+							start: 200,
+							end: 220,
+							class: "regions_class3",
+							label: {
+								text: "Regions 4",
+								center: "x"
+							}
+						}
+					]
+				}
 			}
-		},
+		],
 		RegionWithTimeseries: {
 			options: {
 				data: {
@@ -4841,6 +5210,126 @@ d3.select(".chart_area")
 		]
 	},
 	BarChartOptions: {
+		BarConnectLine: [
+			{
+				options: {
+					title: {
+						text: "start-start"
+					},
+					data: {
+						columns: [
+							["data1", -30, [30, 200], 150, 400, -150, 250]
+						],
+						type: "bar", 
+						groups: [
+							[
+								"data1",
+								"data2"
+							]
+						]
+				  	},
+					bar: {
+						connectLine: "start-start",
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "start-end"
+					},
+					data: {
+						columns: [
+							["data1", -30, [30, 200], 150, 400, -150, 250]
+						],
+						type: "bar", 
+						groups: [
+							[
+								"data1",
+								"data2"
+							]
+						]
+				  	},
+					bar: {
+						connectLine: "start-end"
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "end-start"
+					},
+					data: {
+						columns: [
+							["data1", -30, [30, 200], 150, 400, -150, 250]
+						],
+						type: "bar", 
+						groups: [
+							[
+								"data1",
+								"data2"
+							]
+						]
+				  	},
+					bar: {
+						connectLine: "end-start"
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "end-end"
+					},
+					data: {
+						columns: [
+							["data1", -30, [30, 200], 150, 400, -150, 250]
+						],
+						type: "bar", 
+						groups: [
+							[
+								"data1",
+								"data2"
+							]
+						]
+				  	},
+					bar: {
+						connectLine: "end-end"
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "combination"
+					},
+					data: {
+						columns: [
+							["data1", -30, [30, 200], 150, 400, -150, 250],
+							["data2", 100, -100, 200, -150, 50],
+							["data3", -230, 200, 200, -300, 250, 250],
+							["data4", 100, 200, 100, 150, 50]
+						],
+						type: "bar", 
+						groups: [
+							[
+								"data1",
+								"data2"
+							]
+						]
+					},
+					bar: {
+						connectLine: {
+							data1: "start-start",
+							data2: "start-end",
+							data3: "end-start",
+							data4: "end-end"
+						}
+					}
+				}
+			}
+		],
 		BarFront: [
 			{
 				options: {
@@ -5096,24 +5585,49 @@ d3.select(".chart_area")
 				}
 			},
 		],
-		BarWidth: {
-			options: {
-				data: {
-					columns: [
-						["data1", 30, 200, 100, 400, 150, 250],
-						["data2", 130, 100, 140, 200, 150, 50],
-						["data3", 130, 100, 140, 200, 150, 50]
-					],
-					type: "bar"
-				},
-				bar: {
-					width: {
-						ratio: 0.9,
-						max: 30
+		BarWidth: [
+			{
+				options: {
+					title: {
+						text: "set width in ratio with max limit"
+					},
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 130, 100, 140, 200, 150, 50],
+							["data3", 130, 100, 140, 200, 150, 50]
+						],
+						type: "bar"
+					},
+					bar: {
+						width: {
+							ratio: 0.9,
+							max: 30
+						}
+					}
+				}
+			},
+			{
+				options: {
+					title: {
+						text: "set width in callback"
+					},
+					data: {
+						columns: [
+							["data1", 30, 200, 100, 400, 150, 250],
+							["data2", 130, 100, 140, 200, 150, 50],
+							["data3", 130, 100, 140, 200, 150, 50]
+						],
+						type: "bar"
+					},
+					bar: {
+						width: function(width, targetsNum, maxDataCount) {
+						return width / (targetsNum * maxDataCount);
+						}
 					}
 				}
 			}
-		},
+		],
 		BarWidthVariant: {
 			options: {
 				data: {
@@ -5582,7 +6096,63 @@ d3.select(".chart_area")
 				},
 				clipPath: false
 			}
-		}
+		},
+		resizeParent: {
+			description: "Resize chart when parent node is resized.",
+			options: {
+				data: {
+					columns: [
+						["sample", 30, 200, 120, 400, 230, 250]
+					],
+					type: "line"
+				},
+				resize: {
+					auto: "parent",
+					timer: false
+				}
+			},
+			func: function(chart) {
+				chart.timer = [
+					setTimeout(function() {
+						document.querySelector(".chart_area").style.width="300px";
+					}, 1000),
+				];
+			},
+		},
+		resizeViewBox: [
+			{
+				options: {
+					data: {
+						columns: [
+							["sample", 70, 200, 120, 400, 300, 250]
+						],
+						type: "bar"
+					},
+					resize: {
+						auto: "viewBox"
+					}
+				}
+			},
+			{
+				options: {
+					size: {
+						width: 480,
+						height: 240
+					},
+					data: {
+						columns: [
+							["data1", 70],
+							["data2", 170],
+							["data3", 120]
+						],
+						type: "pie"
+					},
+					resize: {
+						auto: "viewBox"
+					}
+				}
+			}
+		]
 	},
 	DonutChartOptions: {
 		DonutCornerRadius: {

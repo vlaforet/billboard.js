@@ -2,9 +2,11 @@
 *.log
 *.iml
 package-lock.json
+.yarn/*
 /*.css
 /*.html
 /*.js
+/*.sh
 /.*
 /coverage
 /demo/work
@@ -12,3 +14,4 @@ package-lock.json
 /doc
 /monitor
 /node_modules
+/test/**/__screenshots__

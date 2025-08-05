@@ -55,9 +55,7 @@ function getRadiusFn(expandRate = 0) {
 
 			return hasMultiArcGauge ?
 				state.radius - singleArcWidth * (d.index + 1) :
-				isNumber(innerRadius) ?
-				innerRadius :
-				0;
+				(isNumber(innerRadius) ? innerRadius : 0);
 		},
 
 		/**
@@ -592,6 +590,7 @@ export default {
 				);
 
 				d3Select(this).selectAll("path")
+					// @ts-ignore
 					.transition()
 					.duration(expandDuration)
 					.attrTween("d", getAttrTweenFn($$.svgArcExpanded.bind($$)))
@@ -785,7 +784,7 @@ export default {
 			}
 
 			return tplProcess(title, {
-				NEEDLE_VALUE: isNumber(value) ? value : 0
+				NEEDLE_VALUE: ~~value
 			});
 		}
 
@@ -1124,7 +1123,7 @@ export default {
 					$$.setOverOut(true, arcData);
 				})
 				.on("mouseout", (event, d) => {
-					if (state.transiting) { // skip while transiting
+					if (state.transiting || !config.interaction_onout) { // skip while transiting
 						return;
 					}
 

@@ -6,6 +6,13 @@ import {Chart} from "./chart";
  */
 export interface Axis {
 	/**
+	 * Setup the way to evaluate tick text size.
+	 * - **NOTE:**
+	 *   - Setting `false` or custom evaluator, highly recommended to memoize evaluated text dimension value to not degrade performance.
+	 */
+	evalTextSize?: boolean | ((text: SVGTextElement) => {w: number, h: number});
+
+	/**
 	 * Switch x and y axis position.
 	 */
 	rotated?: boolean;
@@ -114,8 +121,8 @@ export interface xAxisConfiguration extends AxisConfigurationBase {
 	height?: number;
 
 	/**
-	 * Set default extent for subchart and zoom.
-	 * This can be an array or function that returns an array.
+	 * Set extent for subchart and zoom(drag only). This can be an array or function that returns an array.
+	 * - **NOTE:** Specifying value, will limit the zoom scope selection within.
 	 */
 	extent?: Array<number|string> | (
 		(
@@ -244,6 +251,12 @@ export interface XTickConfiguration {
 		 * Control visibility of tick lines within culling option, along with tick text.
 		 */
 		lines?: boolean;
+
+		/**	
+		 * Control culling start point to be reversed. If set to true, the culling will be started from the end to start.
+	     * - **NOTE:** This option is only available when `axis.x.tick.culling` is set to truthy value.
+		 */
+		reverse?: boolean;
 	};
 
 	/**
@@ -326,6 +339,14 @@ export interface XTickConfiguration {
 		 * Show or hide tick text
 		 */
 		show?: boolean;
+
+		/**
+		 * Set the first/last axis tick text to be positioned inside the chart on non-rotated axis.
+		 */
+		inner?: boolean | {
+			first? : boolean;
+			last?: boolean;
+		};
 	};
 
 	/**
@@ -389,6 +410,12 @@ export interface YTickConfiguration {
 		 * Control visibility of tick lines within culling option, along with tick text.
 		 */
 		lines?: boolean;
+
+		/**	
+		 * Control culling start point to be reversed. If set to true, the culling will be started from the end to start.
+	     * - **NOTE:** This option is only available when `axis.x.tick.culling` is set to truthy value.
+		 */
+		reverse?: boolean;
 	};
 
 	/**

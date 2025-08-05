@@ -3,11 +3,12 @@
  * billboard.js project is licensed under the MIT license
  */
 import {select as d3Select, selectAll as d3SelectAll} from "d3-selection";
-import type {AxisType} from "../../../types/types";
+import type {AxisType, d3Selection} from "../../../types/types";
 import {$COMMON, $TEXT} from "../../config/classes";
 import {KEY} from "../../module/Cache";
 import {
 	capitalize,
+	getBBox,
 	getBoundingRect,
 	getRandom,
 	getTranslation,
@@ -15,6 +16,7 @@ import {
 	isNumber,
 	isObject,
 	isString,
+	parseShorthand,
 	setTextValue
 } from "../../module/util";
 import type {IArcData, IDataRow} from "../data/IData";
@@ -118,6 +120,61 @@ function getTextPos(d, type): number {
 	) ?? 0;
 }
 
+/**
+ * Update text border
+ * @param {SVGTextElement} text Text element
+ * @param {Coord} pos Position object
+ * @param {string} rectClass Class name
+ * @private
+ */
+function updateTextBorder(text: SVGTextElement, pos: Coord, rectClass: string): void {
+	const $$ = this;
+	const {config, $T} = $$;
+	const isRotated = config.axis_rotated;
+	const {
+		border: {
+			padding = "3 5",
+			radius = 10,
+			stroke = "#000",
+			strokeWidth = 1,
+			fill = "none"
+		}
+	} = config.data_labels;
+
+	const borderPadding = parseShorthand(padding);
+	const applyStyle = config.data_labels.border !== true;
+	const textRect = getBBox(text);
+	let borderRect = d3Select(text.previousElementSibling as Element);
+
+	if (
+		borderRect.empty() ||
+		borderRect.node()?.tagName !== "rect" ||
+		!borderRect.attr("class")?.includes(rectClass)
+	) {
+		borderRect = d3Select(text.parentNode as Element)
+			.insert("rect", () => text)
+			.attr("class", `${$TEXT.textBorderRect} ${rectClass}`)
+			.attr("width",
+				textRect.width + (applyStyle ? borderPadding.left + borderPadding.right : 0))
+			.attr("height",
+				textRect.height + (applyStyle ? borderPadding.top + borderPadding.bottom : 0));
+
+		if (applyStyle) {
+			borderRect
+				.style("fill", fill)
+				.style("stroke", stroke)
+				.style("stroke-width", `${strokeWidth}px`)
+				.attr("rx", radius)
+				.attr("ry", radius);
+		}
+	}
+
+	$T(borderRect)
+		.attr("x",
+			pos.x - (applyStyle ? borderPadding.left : 0) - (isRotated ? 0 : textRect.width / 2))
+		.attr("y", pos.y - (applyStyle ? borderPadding.top : 0) - (textRect.height / 4 * 3.2));
+}
+
 export default {
 	opacityForText(d): null | "0" {
 		const $$ = this;
@@ -155,7 +212,7 @@ export default {
 		const classFocus = $$.classFocus.bind($$);
 		const mainTextUpdate = $$.$el.main.select(`.${$TEXT.chartTexts}`)
 			.selectAll(`.${$TEXT.chartText}`)
-			.data(targets)
+			.data($$.filterNullish(targets))
 			.attr("class", d => `${classChartText(d)}${classFocus(d)}`.trim());
 
 		const mainTextEnter = mainTextUpdate.enter().append("g")
@@ -339,6 +396,9 @@ export default {
 				} else {
 					node.attr("x", pos.x).attr("y", pos.y);
 				}
+
+				config.data_labels.border &&
+					updateTextBorder.call($$, node.node(), pos, `${$TEXT.textBorderRect}-${i}`);
 			});
 
 		// need to return 'true' as of being pushed to the redraw list
@@ -348,38 +408,51 @@ export default {
 
 	/**
 	 * Gets the getBoundingClientRect value of the element
-	 * @param {HTMLElement|d3.selection} element Target element
+	 * @param {HTMLElement|d3.selection|Array} source Target element
 	 * @param {string} className Class name
 	 * @returns {object} value of element.getBoundingClientRect()
 	 * @private
 	 */
-	getTextRect(element, className: string): object {
+	getTextRect(source: d3Selection | SVGElement | number[], className: string): DOMRect[] {
 		const $$ = this;
-		let base = element.node ? element.node() : element;
+		let cacheKey;
+		let base;
+		let text;
 
-		if (!/text/i.test(base.tagName)) {
-			base = base.querySelector("text");
+		if (Array.isArray(source)) {
+			cacheKey = `${KEY.textRect}-${source.join("_")}`;
+		} else {
+			base = (source as d3Selection).node?.() ?? source as SVGElement;
+
+			if (!/text/i.test(base.tagName)) {
+				base = base.querySelector("text");
+			}
+
+			text = base.textContent;
+			cacheKey = `${KEY.textRect}-${text.replace(/\W/g, "_")}`;
 		}
 
-		const text = base.textContent;
-		const cacheKey = `${KEY.textRect}-${text.replace(/\W/g, "_")}`;
-		let rect = $$.cache.get(cacheKey);
+		const rect = $$.cache.get(cacheKey) || [];
 
-		if (!rect) {
-			$$.$el.svg.append("text")
+		if (rect.length === 0) {
+			($$.$el.svg || $$.$el.chart.select("svg"))
+				.selectAll(`.${$COMMON.dummy}`)
+				.data(text ? [text] : source)
+				.enter()
+				.append("text")
 				.style("visibility", "hidden")
-				.style("font", d3Select(base).style("font"))
-				.classed(className, true)
-				.text(text)
-				.call(v => {
-					rect = getBoundingRect(v.node());
+				.style("font", base ? d3Select(base).style("font") : null)
+				.classed(className || $COMMON.dummy, true)
+				.text(d => d)
+				.each(function(v, i) {
+					rect[i] = getBoundingRect(this);
 				})
 				.remove();
 
 			$$.cache.add(cacheKey, rect);
 		}
 
-		return rect;
+		return rect.length > 1 ? rect : rect[0];
 	},
 
 	/**

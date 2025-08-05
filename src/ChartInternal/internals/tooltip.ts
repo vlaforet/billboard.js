@@ -7,7 +7,10 @@ import {$ARC, $TOOLTIP} from "../../config/classes";
 import {document} from "../../module/browser";
 import {
 	callFn,
+	getBoundingRect,
 	getPointer,
+	getTransformCTM,
+	hasViewBox,
 	isEmpty,
 	isFunction,
 	isObject,
@@ -294,7 +297,7 @@ export default {
 	 */
 	setTooltipPosition(dataToShow: IDataRow[], eventTarget: SVGElement): void {
 		const $$ = this;
-		const {config, scale, state, $el: {eventRect, tooltip}} = $$;
+		const {config, scale, state, $el: {eventRect, tooltip, svg}} = $$;
 		const {bindto} = config.tooltip_contents;
 		const isRotated = config.axis_rotated;
 		const datum = tooltip?.datum();
@@ -341,7 +344,11 @@ export default {
 				height,
 				eventRect?.node(),
 				currPos
-			) ?? $$.getTooltipPosition.bind($$)(width, height, currPos);
+			) ?? (
+				hasViewBox(svg) ?
+					$$.getTooltipPositionViewBox.bind($$)(width, height, currPos) :
+					$$.getTooltipPosition.bind($$)(width, height, currPos)
+			);
 
 			["top", "left"].forEach(v => {
 				const value = pos[v];
@@ -354,6 +361,61 @@ export default {
 				}
 			});
 		}
+	},
+
+	/**
+	 * Get tooltip position when svg has vieBox attribute
+	 * @param {number} tWidth Tooltip width value
+	 * @param {number} tHeight Tooltip height value
+	 * @param {object} currPos Current event position value from SVG coordinate
+	 * @returns {object} top, left value
+	 */
+	getTooltipPositionViewBox(tWidth: number, tHeight: number,
+		currPos: {[key: string]: number}): {top: number, left: number} {
+		const $$ = this;
+		const {$el: {eventRect, svg}, config, state} = $$;
+
+		const isRotated = config.axis_rotated;
+		const hasArcType = $$.hasArcType() || state.hasFunnel || state.hasTreemap;
+		const target = (hasArcType ? svg : eventRect)?.node() ?? state.event.target;
+
+		let {x, y} = currPos;
+
+		if (state.hasAxis) {
+			x = isRotated ? x : currPos.xAxis;
+			y = isRotated ? currPos.xAxis : y;
+		}
+
+		// currPos value based on SVG coordinate
+		const ctm = getTransformCTM(target, x, y, false);
+		const rect = getBoundingRect(target);
+		const size = getTransformCTM(target, 20, 0, false).x;
+
+		let top = ctm.y;
+		let left = ctm.x + (tWidth / 2) + size;
+
+		if (hasArcType) {
+			if (state.hasFunnel || state.hasTreemap || state.hasRadar) {
+				left -= (tWidth / 2) + size;
+				top += tHeight;
+			} else {
+				top += rect.height / 2;
+				left += (rect.width / 2) - (tWidth - size);
+			}
+		}
+
+		if (left + tWidth > rect.width) {
+			left = rect.width - tWidth - size;
+		}
+
+		if (top + tHeight > rect.height) {
+			top -= tHeight * 2;
+		}
+
+		return {
+			top,
+			left
+		};
 	},
 
 	/**
@@ -375,6 +437,7 @@ export default {
 		const hasArcType = $$.hasArcType();
 		const svgLeft = $$.getSvgLeft(true);
 		let chartRight = svgLeft + current.width - $$.getCurrentPaddingByDirection("right");
+
 		const size = 20;
 		let {x, y} = currPos;
 
@@ -566,7 +629,7 @@ export default {
 							c.tooltip[
 								show && isNotSameIndex ? "show" : "hide"
 							]({index});
-						} catch (e) {}
+						} catch {}
 					}
 				});
 		}
@@ -605,14 +668,13 @@ export default {
 						$$.setExpand(idx, null, true);
 					}
 				}
-
-				// for Arc & Treemap
-			} else {
+			} else { // for Arc & Treemap
 				const {clientX, clientY} = event;
 
 				setTimeout(() => {
-					let target = document.elementFromPoint(clientX, clientY);
-					const data = d3Select(target).datum() as IArcData;
+					let target = [clientX, clientY].every(Number.isFinite) &&
+						document.elementFromPoint(clientX, clientY);
+					const data = target && d3Select(target).datum() as IArcData;
 
 					if (data) {
 						const d = $$.hasArcType() ?

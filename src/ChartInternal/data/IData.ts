@@ -50,6 +50,10 @@ export interface IArcData {
 	value: number | null;
 }
 
+export interface IBarData extends IDataRow {
+	clipPath?: string | null;
+}
+
 export interface IGridData {
 	axis?: string;
 	text: string;
@@ -61,4 +65,4 @@ export interface IDataIndice {
 	__max__: number;
 }
 
-export type TIndices = {} | {[key: string]: IDataIndice};
+export type TIndices = object | {[key: string]: IDataIndice};

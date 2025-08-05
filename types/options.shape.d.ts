@@ -159,7 +159,13 @@ export interface AreaOptions {
 	zerobased?: boolean;
 }
 
+type TConnectLine = "start-start" | "start-end" | "end-start" | "end-end";
+
 export interface BarOptions {
+	connectLine?: TConnectLine | {
+		[key: string]: TConnectLine;
+	};
+
 	/**
 	 * Set 'bar' to be positioned over(on the top) other shapes elements.
 	 */
@@ -217,7 +223,16 @@ export interface BarOptions {
 	/**
 	 * Change the width of bar chart. If ratio is specified, change the width of bar chart by ratio.
 	 */
-	width?: number | {
+	width?: number | (
+		/**
+		 * Specify width callback
+		 * The callback will receive width, targetsNum, maxDataCount as arguments.
+	 	 * - width: chart area width
+	 	 * - targetsNum: number of targets
+	 	 * - maxDataCount: maximum data count among targets
+		 */
+		(width: number, targetsNum: number, maxDataCount: number) => number
+	) | {
 		/**
 		 * Set the width of each bar by ratio
 		 */
@@ -431,8 +446,9 @@ export interface GaugeOptions {
 
 	/**
 	 * Enforce to given min/max value.
-	 * - When `gauge.min=50` and given value is `30`, gauge will render as empty value.
-	 * - When `gauge.max=100` and given value is `120`, gauge will render till 100, not surpassing max value.
+	 * **Note:** Only works for single data series.
+	 * 	- When `gauge.min=50` and given value is `30`, gauge will render as empty value.
+	 * 	- When `gauge.max=100` and given value is `120`, gauge will render till 100, not surpassing max value.
 	 */
 	enforceMinMax?: boolean;
 

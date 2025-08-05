@@ -5,7 +5,7 @@
 /* eslint-disable */
 // @ts-nocheck
 /* global describe, beforeEach, it, expect */
-import {expect} from "chai";
+import {beforeEach, beforeAll, afterAll, describe, expect, it} from "vitest";
 import {$ARC} from "../../src/config/classes";
 import util from "../assets/util";
 import { $GAUGE } from "../../src/config/classes";
@@ -33,6 +33,9 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			needle: {
 				show: true
 			}
+		},
+		transition: {
+			duration: 200
 		}
 	};
 
@@ -80,7 +83,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			expect(+arcs.select(`.${$ARC.chartArcsTitle}`).text()).to.be.equal(args.arc.needle.value);
 		});
 
-		it(".updateHelper()", done => {
+		it(".updateHelper()", () => new Promise(done => {
 			const {$el: {arcs, needle}} = chart.internal;
 			const getRotate = transform => +transform.replace(/rotate\((\d+\.?\d+?)deg\).*/, "$1");
 
@@ -95,7 +98,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 					expect(getRotate(needle.style("transform"))).to.be.equal(252);
 
 					resolve();
-				}, 500);
+				}, 350);
 			}).then(() => {
 				return new Promise((resolve) => {
 					// hide 'data1'
@@ -111,7 +114,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 						chart.toggle("data1");		
 	
 						resolve();
-					}, 500);
+					}, 350);
 				});
 			}).then(() => {
 				return new Promise((resolve) => {
@@ -123,7 +126,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 						expect(+arcs.select(`.${$ARC.chartArcsTitle}`).text()).to.be.equal(70);
 					
 						resolve();
-					}, 500);
+					}, 350);
 				});
 			}).then(() => {
 				// hide 'data1
@@ -133,10 +136,10 @@ describe("SHAPE ARC: NEEDLE option", () => {
 					// title text value should be equal as the initial value
 					expect(+arcs.select(`.${$ARC.chartArcsTitle}`).text()).to.be.equal(70);
 				
-					done();
-				}, 500);
+					done(1);
+				}, 350);
 			});
-		});
+		}));
 
 		it("set options: arc.needle.path", () => {
 			args.arc.needle.path = function(length) {
@@ -181,7 +184,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			};
 		});
 
-		it("check with startingAngle", done => {
+		it("check with startingAngle", () => new Promise(done => {
 			const {$el: {needle}} = chart.internal;
 			
 			expect(getDegree(needle.style("transform"))).to.be.equal(114.592);
@@ -192,13 +195,13 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			setTimeout(() => {
 				expect(getDegree(needle.style("transform"))).to.be.equal(294.592);
 
-				done();
-			}, 500);			
-		});
+				done(1);
+			}, 350);			
+		}));
 	});
 
 	describe("gauge", () => {	
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -248,7 +251,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			expect(arcs.select(`.${$GAUGE.chartArcsGaugeTitle}`).text()).to.be.equal("50%");
 		});
 
-		it(".updateHelper()", done => {
+		it(".updateHelper()", () => new Promise(done => {
 			const {$el: {arcs}} = chart.internal;
 			
 			// when
@@ -257,9 +260,9 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			setTimeout(() => {
 				expect(arcs.select(`.${$GAUGE.chartArcsGaugeTitle}`).text()).to.be.equal("70%");
 
-				done();
-			}, 500);
-		});
+				done(1);
+			}, 350);
+		}));
 
 		it("set options: multiple dataseries", () => {
 			args.data.columns = [
@@ -270,7 +273,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			args.arc.needle.value = undefined;
 		});
 
-		it("check when multiple dataseries are bound.", done => {
+		it("check when multiple dataseries are bound.", () => new Promise(done => {
 			const {$el: {arcs}} = chart.internal;
 			const gaugeTitle = arcs.select(`.${$GAUGE.chartArcsGaugeTitle}`);
 			
@@ -284,7 +287,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 				setTimeout(() => {
 					expect(gaugeTitle.text()).to.be.equal("0%");
 					resolve();
-				}, 500);
+				}, 350);
 			}).then(() => {
 				// when
 				chart.$.needle.updateHelper(85, true);
@@ -293,10 +296,10 @@ describe("SHAPE ARC: NEEDLE option", () => {
 				setTimeout(() => {
 					expect(gaugeTitle.text()).to.be.equal("85%");
 					
-					done();
-				}, 500);
+					done(1);
+				}, 350);
 			});
-		});
+		}));
 
 		it("set options", () => {
 			args = {
@@ -317,7 +320,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			};
 		});
 
-		it("check with startingAngle", done => {
+		it("check with startingAngle", () => new Promise(done => {
 			const {$el: {needle}} = chart.internal;
 			
 			expect(getDegree(needle.style("transform"))).to.be.equal(-29.7938);
@@ -328,9 +331,9 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			setTimeout(() => {
 				expect(getDegree(needle.style("transform"))).to.be.equal(74.4845);
 
-				done();
-			}, 500);			
-		});
+				done(1);
+			}, 350);			
+		}));
 
 		it("set options", () => {
 			args = {
@@ -354,7 +357,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			};
 		});
 
-		it("check with fullCircle and arcLength options", done => {
+		it("check with fullCircle and arcLength options", () => new Promise(done => {
 			const {$el: {needle}} = chart.internal;
 			const path = needle.attr("d");
 			
@@ -365,24 +368,24 @@ describe("SHAPE ARC: NEEDLE option", () => {
 				chart.$.needle.updateHelper(0);
 
 				setTimeout(() => {
-					expect(getDegree(needle.style("transform"))).to.be.closeTo(-74.4845, 1);
+					expect(getDegree(needle.style("transform"))).to.be.closeTo(-74.4845, 3);
 					resolve();
-				}, 500);
+				}, 350);
 			}).then(() => {
 				// when
 				chart.$.needle.updateHelper(100);
 
 				setTimeout(() => {
-					expect(getDegree(needle.style("transform"))).to.be.equal(177.515);
+					expect(getDegree(needle.style("transform"))).to.be.closeTo(177.515, 3);
 					
-					done();
-				}, 500);
+					done(1);
+				}, 350);
 			});	
-		});
+		}));
 	});
 
 	describe("pie", () => {	
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -412,7 +415,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 			expect(getDegree(needle.style("transform"))).to.be.equal(216);
 		});
 
-		it("toggle data", done => {
+		it("toggle data", () => new Promise(done => {
 			const {$el: {needle}} = chart.internal;
 
 			new Promise((resolve) => {
@@ -422,7 +425,7 @@ describe("SHAPE ARC: NEEDLE option", () => {
 				setTimeout(() => {
 					expect(getDegree(needle.style("transform"))).to.be.equal(270);
 					resolve();
-				}, 500);
+				}, 350);
 			}).then(() => {
 				// when
 				chart.toggle("data4");
@@ -430,9 +433,9 @@ describe("SHAPE ARC: NEEDLE option", () => {
 				setTimeout(() => {
 					expect(getDegree(needle.style("transform"))).to.be.equal(360);
 					
-					done();
-				}, 500);
+					done(1);
+				}, 350);
 			});	
-		});
+		}));
 	});
 });

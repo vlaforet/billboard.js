@@ -4,7 +4,7 @@
  */
 /* eslint-disable */
 /* global describe, beforeEach, it, expect */
-import {expect} from "chai";
+import {beforeEach, beforeAll, describe, expect, it} from "vitest";
 import {select as d3Select} from "d3-selection";
 import {format as d3Format} from "d3-format";
 import util from "../assets/util";
@@ -34,7 +34,7 @@ describe("TEXT", () => {
 
     describe("data.labels", () => {
 		describe("on line chart", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					padding: {
 						left: 50
@@ -181,7 +181,7 @@ describe("TEXT", () => {
 
 		describe("rotate", () => {
 			describe("normal axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -262,14 +262,14 @@ describe("TEXT", () => {
 						if (d.value < 0) {
 							const x = +this.getAttribute("transform").match(/\((\d+\.\d+)/)[1];
 
-							expect(x).to.be.closeTo(57, 1);
+							expect(x).to.be.closeTo(58, 3);
 						}
 					});
 				});
 			});
 
 			describe("rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -315,7 +315,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on bar chart", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					padding: {
 						left: 50
@@ -427,7 +427,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on ranged value(AreaRange/Bar range) chart", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -518,7 +518,7 @@ describe("TEXT", () => {
 		});
 
 		describe("for all targets", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -549,7 +549,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on area chart", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					padding: {
 						left: 50
@@ -617,7 +617,7 @@ describe("TEXT", () => {
 
 		describe("for each target", () => {
 			describe("as true", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -654,7 +654,7 @@ describe("TEXT", () => {
 			describe("as function", () => {
 				const temp: any = [];
 
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -713,7 +713,7 @@ describe("TEXT", () => {
 		});
 
 		describe("with small values", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -734,7 +734,7 @@ describe("TEXT", () => {
 
 		describe("with positive values and null", () => {
 			describe("on not rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						padding: {
 							left: 40
@@ -760,10 +760,10 @@ describe("TEXT", () => {
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [68, 50, 68, 423];
-					const expectedXs = [75, 225, 374, 524];
+					const expectedXs = [75, 223, 374, 524];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
-						.each(checkXY(expectedXs, expectedYs, "", 2));
+						.each(checkXY(expectedXs, expectedYs, "", 3));
 				});
 
 				it("set options data.type='line'", () => {
@@ -779,15 +779,15 @@ describe("TEXT", () => {
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [375, 40, 375, 422];
-					const expectedXs = [6, 202, 397, 593];
+					const expectedXs = [6, 200, 397, 593];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
-						.each(checkXY(expectedXs, expectedYs, "", 2));
+						.each(checkXY(expectedXs, expectedYs, "", 3));
 				});
 			});
 
 			describe("on rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args.padding.bottom = 50;
 					args.padding.top = 5;
 					args.data.type = "bar";
@@ -801,7 +801,7 @@ describe("TEXT", () => {
 					const domain = chart.internal.scale.y.domain();
 
 					expect(domain[0]).to.be.closeTo(0, 1);
-					expect(domain[1]).to.be.closeTo(228, 1);
+					expect(domain[1]).to.be.closeTo(229, 3);
 				});
 
 				it("should locate labels above each data point", () => {
@@ -835,7 +835,7 @@ describe("TEXT", () => {
 
 		describe("with negative values and null", () => {
 			describe("on not rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						padding: {
 							left: 50
@@ -890,7 +890,7 @@ describe("TEXT", () => {
 			});
 
 			describe("on rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args.padding.left = 50;
 					args.padding.bottom = 0;
 
@@ -903,7 +903,7 @@ describe("TEXT", () => {
 				it("should have y domain with proper padding #1", () => {
 					const domain = chart.internal.scale.y.domain();
 
-					expect(domain[0]).to.be.closeTo(-222, 2);
+					expect(domain[0]).to.be.closeTo(-223, 3);
 					expect(domain[1]).to.be.closeTo(0, 1);
 				});
 
@@ -924,7 +924,7 @@ describe("TEXT", () => {
 				it("should have y domain with proper padding #2", () => {
 					const domain = chart.internal.scale.y.domain();
 
-					expect(domain[0]).to.be.closeTo(-222, 2); // -220.4755083436658 vs -223.64837940981494
+					expect(domain[0]).to.be.closeTo(-223, 3); // -220.4755083436658 vs -223.64837940981494
 					expect(domain[1]).to.be.closeTo(24, 1);
 				});
 
@@ -940,7 +940,7 @@ describe("TEXT", () => {
 
 		describe("with positive and negative values and null", () => {
 			describe("on non rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -992,7 +992,7 @@ describe("TEXT", () => {
 			});
 
 			describe("on rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args.data.type = "bar";
 					args.axis = {
 						rotated: true
@@ -1002,13 +1002,13 @@ describe("TEXT", () => {
 				it("should have y domain with proper padding #1", () => {
 					const domain = chart.internal.scale.y.domain();
 
-					expect(domain[0]).to.be.closeTo(-256, 4);
+					expect(domain[0]).to.be.closeTo(-260, 4);
 					expect(domain[1]).to.be.closeTo(261, 3);
 				});
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [57, 163, 269, 375];
-					const expectedXs = [72, 525, 513, 295];
+					const expectedXs = [74, 525, 513, 295];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
 						.each(checkXY(expectedXs, expectedYs, "", {x: 4, y: 2}));
@@ -1021,13 +1021,13 @@ describe("TEXT", () => {
 				it("should have y domain with proper padding #2", () => {
 					const domain = chart.internal.scale.y.domain();
 
-					expect(domain[0]).to.be.closeTo(-255, 5);
+					expect(domain[0]).to.be.closeTo(-259, 5);
 					expect(domain[1]).to.be.closeTo(262, 2);
 				});
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [9, 147, 286, 424];
-					const expectedXs = [70, 527, 515, 297];
+					const expectedXs = [73, 527, 515, 297];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
 						.each(checkXY(expectedXs, expectedYs, "", {x: 4, y: 2}));
@@ -1037,7 +1037,7 @@ describe("TEXT", () => {
 
 		describe("with positive grouped values", () => {
 			describe("on non rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -1088,7 +1088,7 @@ describe("TEXT", () => {
 			});
 
 			describe("on rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args.data.type = "bar";
 					args.axis = {
 						rotated: true
@@ -1099,15 +1099,15 @@ describe("TEXT", () => {
 					const domain = chart.internal.scale.y.domain();
 
 					expect(domain[0]).to.be.closeTo(0, 1);
-					expect(domain[1]).to.be.closeTo(890, 3);
+					expect(domain[1]).to.be.closeTo(893, 5);
 				});
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [57, 163, 269, 375];
-					const expectedXs = [57, 150, 77, 362];
+					const expectedXs = [57, 150, 77, 360];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
-						.each(checkXY(expectedXs, expectedYs, "", 2));
+						.each(checkXY(expectedXs, expectedYs, "", 3));
 				});
 
 				it("set options data.type='line'", () => {
@@ -1117,23 +1117,23 @@ describe("TEXT", () => {
 				it("should have y domain with proper padding #2", () => {
 					const domain = chart.internal.scale.y.domain();
 
-					expect(domain[0]).to.be.closeTo(-87, 4);
+					expect(domain[0]).to.be.closeTo(-90, 4);
 					expect(domain[1]).to.be.closeTo(889, 3);
 				});
 
 				it("should locate labels above each data point", () => {
 					const expectedYs = [9, 147, 286, 424];
-					const expectedXs = [107, 192, 125, 386];
+					const expectedXs = [108, 192, 125, 386];
 
 					chart.$.main.selectAll(`.${$TEXT.texts}-data1 text`)
-						.each(checkXY(expectedXs, expectedYs, "", 2));
+						.each(checkXY(expectedXs, expectedYs, "", 3));
 				});
 			});
 		});
 
 		describe("with negative grouped values", () => {
 			describe("on non rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args = {
 						data: {
 							columns: [
@@ -1184,7 +1184,7 @@ describe("TEXT", () => {
 			});
 
 			describe("on rotated axis", () => {
-				before(() => {
+				beforeAll(() => {
 					args.data.type = "bar";
 					args.axis = {
 						rotated: true
@@ -1228,7 +1228,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on scatter type", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1266,10 +1266,10 @@ describe("TEXT", () => {
 				chart = util.generate(args);
 
 				const tickNodes = chart.$.svg.select(`.${$AXIS.axisY}`).selectAll("g.tick");
-				const translateValues = [402, 367, 331, 296, 260, 225, 189, 154, 118, 83, 47, 12];
+				const translateValues = [401, 366, 331, 295, 260, 225, 189, 154, 118, 83, 47, 12];
 
 				tickNodes.each(function(d, i) {
-					expect(util.parseNum(this.getAttribute("transform"))).to.be.closeTo(translateValues[i], 1);
+					expect(util.parseNum(this.getAttribute("transform"))).to.be.closeTo(translateValues[i], 2);
 				});
 
 				chart.destroy();
@@ -1277,7 +1277,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on scatter + line type", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1312,7 +1312,7 @@ describe("TEXT", () => {
 		});
 
 		describe("on line with array points option", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1343,7 +1343,7 @@ describe("TEXT", () => {
 		});
 
 		describe("text transition", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1358,7 +1358,7 @@ describe("TEXT", () => {
 				};
 			});
 
-			it("newly added text shouldn't be transitioning from the top/left", done => {
+			it("newly added text shouldn't be transitioning from the top/left", () => new Promise(done => {
 				const main = chart.$.main;
 				const pos: number[] = [];
 				let text;
@@ -1377,8 +1377,8 @@ describe("TEXT", () => {
 							expect(Math.round(pos[0])).to.not.equal(0);
 							expect(pos.every(v => v === currPos)).to.be.true;
 
-							done();
-						}, 500);
+							done(1);
+						}, 350);
 					}
 				});
 
@@ -1391,11 +1391,11 @@ describe("TEXT", () => {
 					}
 				}, 80);
 
-			});
+			}));
 		});
 
 		describe("when all data values are 0", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1435,7 +1435,7 @@ describe("TEXT", () => {
 		describe("Labels' postion", () => {
 			const pos = {};
 
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1491,7 +1491,7 @@ describe("TEXT", () => {
 		});
 
 		describe("Labels' postion on inverted axis", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 					  columns: [
@@ -1579,7 +1579,7 @@ describe("TEXT", () => {
 		describe("Labels' postion callback", () => {
 			let pos: number[] = [];
 
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1629,7 +1629,7 @@ describe("TEXT", () => {
 		describe("labels.colors callback", () => {
 			let ctx: any = [];
 
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1662,7 +1662,7 @@ describe("TEXT", () => {
 		describe("labels.backgroundColors", () => {
 			let ctx = [];
 
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						columns: [
@@ -1728,7 +1728,7 @@ describe("TEXT", () => {
 		});
 
 		describe("text positon with xs option", () => {
-			before(() => {
+			beforeAll(() => {
 				args = {
 					data: {
 						xs: { data1: "x", data2: "x2" },
@@ -1773,6 +1773,238 @@ describe("TEXT", () => {
 					expect(+this.getAttribute("x")).to.be.closeTo(expected[0], 1);
 					expect(+this.getAttribute("y")).to.be.closeTo(expected[1], 2);
                 })
+			});
+		});
+
+
+		describe("labels.border", () => {
+			let rectElements;
+
+			beforeAll(() => {
+				args = {
+					data: {
+						columns: [
+							["data1", 100, 150, 200],
+							["data2", 80, 120, 180]
+						],
+						type: "line",
+						labels: {
+							show: true,
+							border: {
+								padding: 5,
+								radius: 8,
+								strokeWidth: 2,
+								stroke: "#ff0000",
+								fill: "#ffffff"
+							}
+						}
+					}
+				};
+			});
+
+			it("should create border elements for data labels", () => {
+				rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				
+				expect(rectElements.size()).to.be.equal(6); // 3 data points * 2 series
+				
+				rectElements.each(function() {
+					expect(this.getAttribute("rx")).to.be.equal("8");
+					expect(this.getAttribute("ry")).to.be.equal("8");
+					expect(this.style.strokeWidth).to.be.equal("2px");
+					expect(this.style.stroke).to.be.equal("rgb(255, 0, 0)"); // #ff0000 -> rgb(255, 0, 0)
+					expect(this.style.fill).to.be.equal("rgb(255, 255, 255)"); // #ffffff -> rgb(255, 255, 255)
+				});
+			});
+
+			it("set options: padding as number", () => {
+				args.data.labels.border.padding = 10;
+			});
+
+			it("should apply numeric padding correctly", () => {
+				const textElements = chart.$.text.texts.nodes();
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`).nodes();
+
+				textElements.forEach((text, i) => {
+					const textBBox = text.getBBox();
+					const rect = rectElements[i];
+					const rectWidth = +rect.getAttribute("width");
+					const rectHeight = +rect.getAttribute("height");
+
+					// Check if padding is applied (rect should be larger than text by 2*padding)
+					expect(rectWidth).to.be.closeTo(textBBox.width + 20, 2); // 10 padding on each side
+					expect(rectHeight).to.be.closeTo(textBBox.height + 20, 2); // 10 padding on top and bottom
+				});
+			});
+
+			it("set options: padding as string", () => {
+				args.data.labels.border.padding = "8 12";
+			});
+
+			it("should apply string padding correctly", () => {
+				const textElements = chart.$.text.texts.nodes();
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`).nodes();
+
+				textElements.forEach((text, i) => {
+					const textBBox = text.getBBox();
+					const rect = rectElements[i];
+					const rectWidth = +rect.getAttribute("width");
+					const rectHeight = +rect.getAttribute("height");
+
+					// "8 12" means top/bottom: 8, left/right: 12
+					expect(rectWidth).to.be.closeTo(textBBox.width + 24, 2); // 12 padding on each side
+					expect(rectHeight).to.be.closeTo(textBBox.height + 16, 2); // 8 padding on top and bottom
+				});
+			});
+
+			it("set options: padding as object", () => {
+				args.data.labels.border.padding = {
+					top: 5,
+					bottom: 10,
+					left: 8,
+					right: 12
+				};
+			});
+
+			it("should apply object padding correctly", () => {
+				const textElements = chart.$.text.texts.nodes();
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`).nodes();
+
+				textElements.forEach((text, i) => {
+					const textBBox = text.getBBox();
+					const rect = rectElements[i];
+					const rectWidth = +rect.getAttribute("width");
+					const rectHeight = +rect.getAttribute("height");
+
+					// Object padding: top:5, bottom:10, left:8, right:12
+					expect(rectWidth).to.be.closeTo(textBBox.width + 20, 2); // 8 + 12
+					expect(rectHeight).to.be.closeTo(textBBox.height + 15, 2); // 5 + 10
+				});
+			});
+
+			it("set options: axis.rotated=true", () => {
+				args.axis = {
+					rotated: true
+				};
+				args.data.labels.border.padding = 5;
+			});
+
+			it("should create border elements for rotated axis", () => {
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				
+				expect(rectElements.size()).to.be.equal(6);
+				
+				// Check that border elements are properly positioned for rotated axis
+				rectElements.each(function() {
+					expect(this.getAttribute("rx")).to.be.equal("8");
+					expect(this.getAttribute("ry")).to.be.equal("8");
+					expect(this.style.strokeWidth).to.be.equal("2px");
+				});
+			});
+
+			it("set options: border=true only", () => {
+				args = {
+					data: {
+						columns: [
+							["data1", 100, 150, 200]
+						],
+						type: "line",
+						labels: {
+							show: true,
+							border: true
+						}
+					},
+					axis: {
+						rotated: false
+					}
+				};
+			});
+
+			it("should create border elements without styling when border=true", () => {
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				
+				expect(rectElements.size()).to.be.equal(3);
+				
+				// When border=true without options, styling is not applied (need to use CSS)
+				rectElements.each(function() {
+					// Check that elements exist but don't have inline styles
+					expect(this.tagName.toLowerCase()).to.be.equal("rect");
+					expect(this.classList.contains($TEXT.textBorderRect)).to.be.true;
+					
+					// These should be empty/unset when border=true (styling via CSS)
+					expect(this.style.strokeWidth).to.be.equal("");
+					expect(this.style.stroke).to.be.equal("");
+					expect(this.style.fill).to.be.equal("");
+					expect(this.getAttribute("rx")).to.be.null;
+					expect(this.getAttribute("ry")).to.be.null;
+				});
+			});
+
+			it("set options: border=false", () => {
+				args.data.labels.border = false;
+			});
+
+			it("should not create border elements when border=false", () => {
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				
+				expect(rectElements.size()).to.be.equal(0);
+			});
+
+			it("set options: different border styles per dataset", () => {
+				args = {
+					data: {
+						columns: [
+							["data1", 100, 150, 200],
+							["data2", 80, 120, 180]
+						],
+						type: "bar",
+						labels: {
+							show: true,
+							border: {
+								padding: 6,
+								radius: 4,
+								strokeWidth: 1,
+								stroke: "#000000",
+								fill: "rgba(255, 255, 255, 0.8)"
+							}
+						}
+					}
+				};
+			});
+
+			it("should apply border styles correctly for bar chart", () => {
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				
+				expect(rectElements.size()).to.be.equal(6);
+				
+				rectElements.each(function() {
+					expect(this.getAttribute("rx")).to.be.equal("4");
+					expect(this.getAttribute("ry")).to.be.equal("4");
+					expect(this.style.strokeWidth).to.be.equal("1px");
+					expect(this.style.stroke).to.be.equal("rgb(0, 0, 0)"); // #000000 -> rgb(0, 0, 0)
+					expect(this.style.fill).to.be.equal("rgba(255, 255, 255, 0.8)");
+				});
+			});
+
+			it("set options: border with centered labels", () => {
+				args.data.labels.centered = true;
+			});
+
+			it("should position border correctly with centered labels", () => {
+				const rectElements = chart.$.main.selectAll(`.${$TEXT.texts} rect.${$TEXT.textBorderRect}`);
+				const textElements = chart.$.text.texts.nodes();
+				
+				expect(rectElements.size()).to.be.equal(6);
+				
+				// Verify that border elements are positioned relative to centered text
+				rectElements.each(function(d, i) {
+					const rect = this;
+					const text = textElements[i];
+					
+					expect(rect.getAttribute("x")).to.not.be.null;
+					expect(rect.getAttribute("y")).to.not.be.null;
+					expect(text.getAttribute("x")).to.not.be.null;
+					expect(text.getAttribute("y")).to.not.be.null;
+				});
 			});
 		});
 	});

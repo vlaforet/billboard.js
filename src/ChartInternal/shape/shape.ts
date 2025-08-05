@@ -27,9 +27,11 @@ import type {d3Selection} from "../../../types/types";
 import CLASS from "../../config/classes";
 import {
 	capitalize,
+	getBBox,
 	getPointer,
 	getRectSegList,
 	getUnique,
+	isFunction,
 	isNumber,
 	isObjectType,
 	isUndefined,
@@ -203,7 +205,7 @@ export default {
 			return ind;
 		}
 
-		return notEmpty(xs) ? indices[xs[id]] : indices;
+		return notEmpty(xs) ? indices[xs[id]] : indices as IDataIndice;
 	},
 
 	/**
@@ -441,7 +443,7 @@ export default {
 
 	getBarW(type, axis, targetsNum: number): number | IOffset {
 		const $$ = this;
-		const {config, org, scale} = $$;
+		const {config, org, scale, state} = $$;
 		const maxDataCount = $$.getMaxDataCount();
 		const isGrouped = type === "bar" && config.data_groups?.length;
 		const configName = `${type}_width`;
@@ -467,9 +469,11 @@ export default {
 			const width = id ? config[configName][id] : config[configName];
 			const ratio = id ? width.ratio : config[`${configName}_ratio`];
 			const max = id ? width.max : config[`${configName}_max`];
-			const w = isNumber(width) ?
-				width :
-				(targetsNum ? (tickInterval * ratio) / targetsNum : 0);
+			const w = isNumber(width) ? width : (
+				isFunction(width) ?
+					width.call($$, state.width, targetsNum, maxDataCount) :
+					(targetsNum ? (tickInterval * ratio) / targetsNum : 0)
+			);
 
 			return max && w > max ? max : w;
 		};
@@ -587,7 +591,7 @@ export default {
 		const x = Math.min(seg0.x, seg1.x);
 		const y = Math.min(seg0.y, seg1.y);
 		const offset = this.config.bar_sensitivity;
-		const {width, height} = that.getBBox();
+		const {width, height} = getBBox(that, true);
 		const sx = x - offset;
 		const ex = x + width + offset;
 		const sy = y + height + offset;

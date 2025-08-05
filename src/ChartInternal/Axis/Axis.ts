@@ -9,9 +9,10 @@ import {
 	axisTop as d3AxisTop
 } from "d3-axis";
 import type {AxisType} from "../../../types/types";
-import {$AXIS} from "../../config/classes";
+import {$AXIS, $COMMON} from "../../config/classes";
 import {
 	capitalize,
+	getBoundingRect,
 	isArray,
 	isEmpty,
 	isFunction,
@@ -106,17 +107,38 @@ class Axis {
 		return type;
 	}
 
+	/**
+	 * Get extent value
+	 * @returns {Array} default extent
+	 * @private
+	 */
+	public getExtent(): number[] {
+		const $$ = this.owner;
+		const {config, scale} = $$;
+		let extent = config.axis_x_extent;
+
+		if (extent) {
+			if (isFunction(extent)) {
+				extent = extent.bind($$.api)($$.getXDomain($$.data.targets), scale.subX);
+			} else if (this.isTimeSeries() && extent.every(isNaN)) {
+				const fn = parseDate.bind($$);
+
+				extent = extent.map(v => scale.subX(fn(v)));
+			}
+		}
+
+		return extent;
+	}
+
 	init() {
 		const $$ = this.owner;
 		const {config, $el: {main, axis}, state: {clip}} = $$;
-		const isRotated = config.axis_rotated;
 		const target = ["x", "y"];
 
 		config.axis_y2_show && target.push("y2");
 
 		target.forEach(v => {
 			const classAxis = this.getAxisClassName(v);
-			const classLabel = $AXIS[`axis${v.toUpperCase()}Label`];
 
 			axis[v] = main.append("g")
 				.attr("class", classAxis)
@@ -134,17 +156,8 @@ class Axis {
 				.attr("transform", $$.getTranslate(v))
 				.style("visibility", config[`axis_${v}_show`] ? null : "hidden");
 
-			axis[v].append("text")
-				.attr("class", classLabel)
-				.attr("transform", ["rotate(-90)", null][
-					v === "x" ? +!isRotated : +isRotated
-				])
-				.style("text-anchor", () => this.textAnchorForAxisLabel(v));
-
 			this.generateAxes(v);
 		});
-
-		config.axis_tooltip && this.setAxisTooltip();
 	}
 
 	/**
@@ -514,22 +527,6 @@ class Axis {
 		return x;
 	}
 
-	dxForAxisLabel(id: string) {
-		const $$ = this.owner;
-		const position = this.getAxisLabelPosition(id);
-		let dx = position.isBottom ? "0.5em" : "0";
-
-		if (this.isHorizontal($$, id !== "x")) {
-			dx = position.isLeft ? "0.5em" : (
-				position.isRight ? "-0.5em" : "0"
-			);
-		} else if (position.isTop) {
-			dx = "-0.5em";
-		}
-
-		return dx;
-	}
-
 	textAnchorForAxisLabel(id: string) {
 		const $$ = this.owner;
 		const position = this.getAxisLabelPosition(id);
@@ -544,6 +541,22 @@ class Axis {
 		}
 
 		return anchor;
+	}
+
+	dxForAxisLabel(id: string) {
+		const $$ = this.owner;
+		const position = this.getAxisLabelPosition(id);
+		let dx = position.isBottom ? "0.5em" : "0";
+
+		if (this.isHorizontal($$, id !== "x")) {
+			dx = position.isLeft ? "0.5em" : (
+				position.isRight ? "-0.5em" : "0"
+			);
+		} else if (position.isTop) {
+			dx = "-0.5em";
+		}
+
+		return dx;
 	}
 
 	dyForAxisLabel(id: AxisType) {
@@ -604,7 +617,7 @@ class Axis {
 	 */
 	getMaxTickSize(id: AxisType, withoutRecompute?: boolean): {width: number, height: number} {
 		const $$ = this.owner;
-		const {config, state: {current}, $el: {svg, chart}} = $$;
+		const {config, state: {current, resizing}, $el: {svg, chart}} = $$;
 		const currentTickMax = current.maxTickSize[id];
 		const configPrefix = `axis_${id}`;
 		const max = {
@@ -613,7 +626,7 @@ class Axis {
 		};
 
 		if (
-			withoutRecompute || !config[`${configPrefix}_show`] || (
+			resizing || withoutRecompute || !config[`${configPrefix}_show`] || (
 				currentTickMax.width > 0 && $$.filterTargetsToShow().length === 0
 			)
 		) {
@@ -672,12 +685,24 @@ class Axis {
 				.style("top", "0")
 				.style("left", "0");
 
-			axis.create(dummy);
+			const g = dummy
+				.append("g")
+				.attr("class", `${$AXIS[`axis${capitalize(id)}`]} ${$COMMON.dummy}`);
+
+			axis.create(g);
+
+			// when evalTextSize is set as function, sizeFor1Char is set to the dummy element
+			const {sizeFor1Char} = g.node();
 
 			dummy.selectAll("text")
 				.attr("transform", isNumber(tickRotate) ? `rotate(${tickRotate})` : null)
 				.each(function(d, i) {
-					const {width, height} = this.getBoundingClientRect();
+					const {width, height} = sizeFor1Char ?
+						{
+							width: this.textContent.length * sizeFor1Char.w,
+							height: sizeFor1Char.h
+						} :
+						getBoundingRect(this, true);
 
 					max.width = Math.max(max.width, width);
 					max.height = Math.max(max.height, height);
@@ -779,33 +804,49 @@ class Axis {
 					$$.getXDomainMax($$.data.targets) + 1 + right
 				]);
 
-			tickOffset = Math.ceil((scale(1) - scale(0)) / 2);
+			tickOffset = (scale(1) - scale(0)) / 2;
 		}
 
 		return maxOverflow + tickOffset;
 	}
 
-	updateLabels(withTransition) {
+	/**
+	 * Update axis label text
+	 * @param {boolean} withTransition Weather update with transition
+	 * @private
+	 */
+	updateLabels(withTransition: boolean): void {
 		const $$ = this.owner;
-		const {$el: {main}, $T} = $$;
+		const {config, $el: {main}, $T} = $$;
+		const isRotated = config.axis_rotated;
 
-		const labels = {
-			x: main.select(`.${$AXIS.axisX} .${$AXIS.axisXLabel}`),
-			y: main.select(`.${$AXIS.axisY} .${$AXIS.axisYLabel}`),
-			y2: main.select(`.${$AXIS.axisY2} .${$AXIS.axisY2Label}`)
-		};
+		["x", "y", "y2"].forEach((id: AxisType) => {
+			const text = this.getLabelText(id);
+			const selector = `axis${capitalize(id)}`;
+			const classLabel = $AXIS[`${selector}Label`];
 
-		Object.keys(labels).filter(id => !labels[id].empty())
-			.forEach((v: AxisType) => {
-				const node = labels[v];
+			if (text) {
+				let axisLabel = main.select(`text.${classLabel}`);
+
+				// generate eleement if not exists
+				if (axisLabel.empty()) {
+					axisLabel = main.select(`g.${$AXIS[selector]}`)
+						.insert("text", ":first-child")
+						.attr("class", classLabel)
+						.attr("transform", ["rotate(-90)", null][
+							id === "x" ? +!isRotated : +isRotated
+						])
+						.style("text-anchor", () => this.textAnchorForAxisLabel(id));
+				}
 
 				// @check $$.$T(node, withTransition)
-				$T(node, withTransition)
-					.attr("x", () => this.xForAxisLabel(v))
-					.attr("dx", () => this.dxForAxisLabel(v))
-					.attr("dy", () => this.dyForAxisLabel(v))
-					.text(() => this.getLabelText(v));
-			});
+				$T(axisLabel, withTransition)
+					.attr("x", () => this.xForAxisLabel(id))
+					.attr("dx", () => this.dxForAxisLabel(id))
+					.attr("dy", () => this.dyForAxisLabel(id))
+					.text(text);
+			}
+		});
 	}
 
 	/**
@@ -887,7 +928,7 @@ class Axis {
 
 	redraw(transitions, isHidden, isInit) {
 		const $$ = this.owner;
-		const {config, $el} = $$;
+		const {config, state, $el} = $$;
 		const opacity = isHidden ? "0" : null;
 
 		["x", "y", "y2", "subX"].forEach(id => {
@@ -905,6 +946,7 @@ class Axis {
 		});
 
 		this.updateAxes();
+		!state.rendered && config.axis_tooltip && this.setAxisTooltip();
 	}
 
 	/**
@@ -1005,7 +1047,8 @@ class Axis {
 
 			if (axis && toCull) {
 				const tickNodes = axis.selectAll(".tick");
-				const tickValues = sortValue(tickNodes.data());
+				const tickValues = sortValue(tickNodes.data(),
+					!config[`${cullingOptionPrefix}_reverse`]);
 				const tickSize = tickValues.length;
 				const cullingMax = config[`${cullingOptionPrefix}_max`];
 				const lines = config[`${cullingOptionPrefix}_lines`];
@@ -1066,24 +1109,26 @@ class Axis {
 		);
 
 		["x", "y", "y2"].forEach(v => {
-			axisTooltip[v] = axis[v]?.append("text")
-				.classed($AXIS[`axis${v.toUpperCase()}Tooltip`], true)
-				.attr("filter", $$.updateTextBGColor({id: v}, bgColor));
+			if (isString(bgColor) || bgColor[v]) {
+				axisTooltip[v] = axis[v]?.append("text")
+					.classed($AXIS[`axis${v.toUpperCase()}Tooltip`], true)
+					.attr("filter", $$.updateTextBGColor({id: v}, bgColor));
 
-			if (isRotated) {
-				const pos = v === "x" ? "x" : "y";
-				const val = v === "y" ? "1.15em" : (v === "x" ? "-0.3em" : "-0.4em");
+				if (isRotated) {
+					const pos = v === "x" ? "x" : "y";
+					const val = v === "y" ? "1.15em" : (v === "x" ? "-0.3em" : "-0.4em");
 
-				axisTooltip[v]?.attr(pos, val)
-					.attr(`d${v === "x" ? "y" : "x"}`, v === "x" ? "0.4em" : "-1.3em")
-					.style("text-anchor", v === "x" ? "end" : null);
-			} else {
-				const pos = v === "x" ? "y" : "x";
-				const val = v === "x" ? "1.15em" : `${v === "y" ? "-" : ""}0.4em`;
+					axisTooltip[v]?.attr(pos, val)
+						.attr(`d${v === "x" ? "y" : "x"}`, v === "x" ? "0.4em" : "-1.3em")
+						.style("text-anchor", v === "x" ? "end" : null);
+				} else {
+					const pos = v === "x" ? "y" : "x";
+					const val = v === "x" ? "1.15em" : `${v === "y" ? "-" : ""}0.4em`;
 
-				axisTooltip[v]?.attr(pos, val)
-					.attr(`d${v === "x" ? "x" : "y"}`, v === "x" ? "-1em" : "0.3em")
-					.style("text-anchor", v === "y" ? "end" : null);
+					axisTooltip[v]?.attr(pos, val)
+						.attr(`d${v === "x" ? "x" : "y"}`, v === "x" ? "-1em" : "0.3em")
+						.style("text-anchor", v === "y" ? "end" : null);
+				}
 			}
 		});
 	}

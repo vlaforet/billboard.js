@@ -102,6 +102,10 @@ export default {
 			}
 
 			$$.updateCurrentZoomTransform(zoomState.x, zoomState.currentDomain);
+
+			// https://github.com/naver/billboard.js/issues/3878
+		} else if (org.xScale) {
+			org.xScale.domain(org.xDomain);
 		}
 
 		// Update current state chart type and elements list after redraw
@@ -176,6 +180,9 @@ export default {
 			// Remove custom point def element
 			hasLegendDefsPoint && $el.defs?.select(`#${$$.getDefsPointId(suffixId)}`).remove();
 		});
+
+		// since treemap uses different data types, it needs to be transformed
+		state.hasFunnel && $$.updateFunnel($$.data.targets);
 
 		// since treemap uses different data types, it needs to be transformed
 		state.hasTreemap && $$.updateTargetsForTreemap($$.data.targets);

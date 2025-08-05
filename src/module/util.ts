@@ -23,6 +23,7 @@ export {
 	endall,
 	extend,
 	findIndex,
+	getBBox,
 	getBoundingRect,
 	getBrushSelection,
 	getCssRules,
@@ -34,9 +35,12 @@ export {
 	getRange,
 	getRectSegList,
 	getScrollPosition,
+	getTransformCTM,
 	getTranslation,
 	getUnique,
+	hasStyle,
 	hasValue,
+	hasViewBox,
 	isArray,
 	isBoolean,
 	isDefined,
@@ -53,6 +57,7 @@ export {
 	mergeObj,
 	notEmpty,
 	parseDate,
+	parseShorthand,
 	runUntil,
 	sanitize,
 	setTextValue,
@@ -248,7 +253,7 @@ function getRectSegList(path: SVGGraphicsElement): {x: number, y: number}[] {
 function getPathBox(
 	path: SVGGraphicsElement
 ): {x: number, y: number, width: number, height: number} {
-	const {width, height} = path.getBoundingClientRect();
+	const {width, height} = getBoundingRect(path);
 	const items = getRectSegList(path);
 	const x = items[0].x;
 	const y = Math.min(items[0].y, items[1].y);
@@ -268,14 +273,14 @@ function getPathBox(
  * @returns {Array} [x, y] Coordinates x, y array
  * @private
  */
-function getPointer(event, element?: Element): number[] {
+function getPointer(event, element?: SVGElement): number[] {
 	const touches = event &&
 		(event.touches || (event.sourceEvent && event.sourceEvent.touches))?.[0];
 	let pointer = [0, 0];
 
 	try {
 		pointer = d3Pointer(touches || event, element);
-	} catch (e) {}
+	} catch {}
 
 	return pointer.map(v => (isNaN(v) ? 0 : v));
 }
@@ -305,28 +310,52 @@ function getBrushSelection(ctx) {
 /**
  * Get boundingClientRect.
  * Cache the evaluated value once it was called.
- * @param {HTMLElement} node Target element
+ * @param {boolean} relativeViewport Relative to viewport - true: will use .getBoundingClientRect(), false: will use .getBBox()
+ * @param {SVGElement} node Target element
+ * @param {boolean} forceEval Force evaluation
  * @returns {object}
  * @private
  */
-function getBoundingRect(
-	node
-): {
-	left: number,
-	top: number,
-	right: number,
-	bottom: number,
-	x: number,
-	y: number,
-	width: number,
-	height: number
-} {
-	const needEvaluate = !("rect" in node) || (
-		"rect" in node && node.hasAttribute("width") &&
-		node.rect.width !== +node.getAttribute("width")
-	);
+function getRect(
+	relativeViewport: boolean,
+	node: SVGElement & Partial<{rect: DOMRect | SVGRect}>,
+	forceEval = false
+): DOMRect | SVGRect {
+	const _ = n => n[relativeViewport ? "getBoundingClientRect" : "getBBox"]();
 
-	return needEvaluate ? (node.rect = node.getBoundingClientRect()) : node.rect;
+	if (forceEval) {
+		return _(node);
+	} else {
+		// will cache the value if the element is not a SVGElement or the width is not set
+		const needEvaluate = !("rect" in node) || (
+			"rect" in node && node.hasAttribute("width") &&
+			node.rect!.width !== +(node.getAttribute("width") || 0)
+		);
+
+		return needEvaluate ? (node.rect = _(node)) : node.rect!;
+	}
+}
+
+/**
+ * Get boundingClientRect.
+ * @param {SVGElement} node Target element
+ * @param {boolean} forceEval Force evaluation
+ * @returns {object}
+ * @private
+ */
+function getBoundingRect(node, forceEval = false) {
+	return getRect(true, node, forceEval);
+}
+
+/**
+ * Get BBox.
+ * @param {SVGElement} node Target element
+ * @param {boolean} forceEval Force evaluation
+ * @returns {object}
+ * @private
+ */
+function getBBox(node, forceEval = false) {
+	return getRect(false, node, forceEval);
 }
 
 /**
@@ -532,9 +561,34 @@ function getCssRules(styleSheets: any[]) {
  */
 function getScrollPosition(node: HTMLElement) {
 	return {
-		x: (window.pageXOffset ?? window.scrollX ?? 0) + node.scrollLeft ?? 0,
-		y: (window.pageYOffset ?? window.scrollY ?? 0) + node.scrollTop ?? 0
+		x: (window.pageXOffset ?? window.scrollX ?? 0) + (node.scrollLeft ?? 0),
+		y: (window.pageYOffset ?? window.scrollY ?? 0) + (node.scrollTop ?? 0)
 	};
+}
+
+/**
+ * Get translation string from screen <--> svg point
+ * @param {SVGGraphicsElement} node graphics element
+ * @param {number} x target x point
+ * @param {number} y target y point
+ * @param {boolean} inverse inverse flag
+ * @returns {object}
+ */
+function getTransformCTM(node: SVGGraphicsElement, x = 0, y = 0, inverse = true): DOMPoint {
+	const point = new DOMPoint(x, y);
+	const screen = <DOMMatrix>node.getScreenCTM();
+	const res = point.matrixTransform(
+		inverse ? screen?.inverse() : screen
+	);
+
+	if (inverse === false) {
+		const rect = getBoundingRect(node);
+
+		res.x -= rect.x;
+		res.y -= rect.y;
+	}
+
+	return res;
 }
 
 /**
@@ -592,13 +646,15 @@ function mergeObj(target: object, ...objectN): any {
 
 	if (isObject(target) && isObject(source)) {
 		Object.keys(source).forEach(key => {
-			const value = source[key];
+			if (!/^(__proto__|constructor|prototype)$/i.test(key)) {
+				const value = source[key];
 
-			if (isObject(value)) {
-				!target[key] && (target[key] = {});
-				target[key] = mergeObj(target[key], value);
-			} else {
-				target[key] = isArray(value) ? value.concat() : value;
+				if (isObject(value)) {
+					!target[key] && (target[key] = {});
+					target[key] = mergeObj(target[key], value);
+				} else {
+					target[key] = isArray(value) ? value.concat() : value;
+				}
 			}
 		});
 	}
@@ -691,7 +747,7 @@ const emulateEvent = {
 			return (el: SVGElement | HTMLElement, eventType: string, params = getParams()) => {
 				el.dispatchEvent(new MouseEvent(eventType, params));
 			};
-		} catch (e) {
+		} catch {
 			// Polyfills DOM4 MouseEvent
 			return (el: SVGElement | HTMLElement, eventType: string, params = getParams()) => {
 				const mouseEvent = document.createEvent("MouseEvent");
@@ -788,6 +844,39 @@ function parseDate(date: Date | string | number | any): Date {
 }
 
 /**
+ * Check if svg element has viewBox attribute
+ * @param {d3Selection} svg Target svg selection
+ * @returns {boolean}
+ */
+function hasViewBox(svg: d3Selection): boolean {
+	const attr = svg.attr("viewBox");
+
+	return attr ? /(\d+(\.\d+)?){3}/.test(attr) : false;
+}
+
+/**
+ * Determine if given node has the specified style
+ * @param {d3Selection|SVGElement} node Target node
+ * @param {object} condition Conditional style props object
+ * @param {boolean} all If true, all condition should be matched
+ * @returns {boolean}
+ */
+function hasStyle(node, condition: {[key: string]: string}, all = false): boolean {
+	const isD3Node = !!node.node;
+	let has = false;
+
+	for (const [key, value] of Object.entries(condition)) {
+		has = isD3Node ? node.style(key) === value : node.style[key] === value;
+
+		if (all === false && has) {
+			break;
+		}
+	}
+
+	return has;
+}
+
+/**
  * Return if the current doc is visible or not
  * @returns {boolean}
  * @private
@@ -805,6 +894,9 @@ function isTabVisible(): boolean {
  */
 function convertInputType(mouse: boolean, touch: boolean): "mouse" | "touch" | null {
 	const {DocumentTouch, matchMedia, navigator} = window;
+
+	// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/pointer#coarse
+	const hasPointerCoarse = matchMedia?.("(pointer:coarse)").matches;
 	let hasTouch = false;
 
 	if (touch) {
@@ -820,7 +912,7 @@ function convertInputType(mouse: boolean, touch: boolean): "mouse" | "touch" | n
 			hasTouch = true;
 		} else {
 			// https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent#avoiding_user_agent_detection
-			if (matchMedia?.("(pointer:coarse)").matches) {
+			if (hasPointerCoarse) {
 				hasTouch = true;
 			} else {
 				// Only as a last resort, fall back to user agent sniffing
@@ -832,11 +924,9 @@ function convertInputType(mouse: boolean, touch: boolean): "mouse" | "touch" | n
 		}
 	}
 
-	// Check if agent has mouse using any-hover, touch devices (e.g iPad) with external mouse will return true as long as mouse is connected
-	// https://css-tricks.com/interaction-media-features-and-their-potential-for-incorrect-assumptions/#aa-testing-the-capabilities-of-all-inputs
-	// Demo: https://patrickhlauke.github.io/touch/pointer-hover-any-pointer-any-hover/
-	const hasMouse = mouse && ["any-hover:hover", "any-pointer:fine"]
-		.some(v => matchMedia?.(`(${v})`).matches);
+	// For non-touch device, media feature condition is: '(pointer:coarse) = false' and '(pointer:fine) = true'
+	// https://github.com/naver/billboard.js/issues/3854#issuecomment-2404183158
+	const hasMouse = mouse && !hasPointerCoarse && matchMedia?.("(pointer:fine)").matches;
 
 	// fallback to 'mouse' if no input type is detected.
 	return (hasMouse && "mouse") || (hasTouch && "touch") || "mouse";
@@ -854,4 +944,29 @@ function runUntil(fn: Function, conditionFn: Function): void {
 	} else {
 		fn();
 	}
+}
+
+/**
+ * Parse CSS shorthand values (padding, margin, border-radius, etc.)
+ * @param {number|string|object} value Shorthand value(s)
+ * @returns {object} Parsed object with top, right, bottom, left properties
+ * @private
+ */
+function parseShorthand(
+	value: number | string | object
+): {top: number, right: number, bottom: number, left: number} {
+	if (isObject(value) && !isString(value)) {
+		const obj = value as {top?: number, right?: number, bottom?: number, left?: number};
+		return {
+			top: obj.top || 0,
+			right: obj.right || 0,
+			bottom: obj.bottom || 0,
+			left: obj.left || 0
+		};
+	}
+
+	const values = (isString(value) ? value.trim().split(/\s+/) : [value]).map(v => +v || 0);
+	const [a, b = a, c = a, d = b] = values;
+
+	return {top: a, right: b, bottom: c, left: d};
 }

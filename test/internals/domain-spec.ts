@@ -3,7 +3,7 @@
  * billboard.js project is licensed under the MIT license
  */
 /* eslint-disable */
-import {expect} from "chai";
+import {beforeEach, beforeAll, describe, expect, it} from "vitest";
 import util from "../assets/util";
 
 describe("DOMAIN", function() {
@@ -15,7 +15,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("axis.y.min", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -169,7 +169,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("axis.y.padding #1", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -194,7 +194,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("axis.y.padding #2", () => {
-		before(() => {
+		beforeAll(() => {
 			// should change axis.y.max to 1000 with top/bottom padding
 			args = {
 				data: {
@@ -223,7 +223,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("Multi xs with grouped data", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					xs: { "Buy": "xBuy", "Sell": "xSell" },
@@ -259,7 +259,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("axis.y/axis.y2 domain should be the same", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -325,22 +325,22 @@ describe("DOMAIN", function() {
 
 				setTimeout(() => {
 					expect(chart.internal.scale[axisId].domain()).to.be.deep.equal(domain);
-					done();
-				}, 300);
+					done(1);
+				}, 350);
 			};
 
-			it("y Axis domain should maintain", done => {
+			it("y Axis domain should maintain", () => new Promise(done => {
 				checkDomain("data1", "y", done);
-			});
+			}));
 
-			it("y2 Axis domain should maintain", done => {
+			it("y2 Axis domain should maintain", () => new Promise(done => {
 				checkDomain("data2", "y2", done);
-			});
+			}));
 		});
 	});
 
 	describe("data.axes with combination of zerobased and non-zerobased types.", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -379,7 +379,7 @@ describe("DOMAIN", function() {
 	});
 
 	describe("trimXDomain", () => {
-		before(() => {
+		beforeAll(() => {
 			args = {
 				data: {
 					columns: [
@@ -407,6 +407,60 @@ describe("DOMAIN", function() {
 
 			expect(trimmed[0]).to.approximately(domain[0], 0.1);
 			expect(trimmed[1]).to.approximately(domain[1], 0.1);
+		});
+	});
+
+	describe("when chart area shrinks as much as possible on rotated axis.", () => {
+		beforeAll(() => {
+			args = {
+				size: {
+					width: 200,
+					height: 480
+				},
+				data: {
+					columns: [
+						["1 Year", 62350, 56722, 45912, 17436, 17102, 9349, 9183, 9084, 7709, 7653]
+					],
+					type: "bar",
+					labels: {
+						colors: "black"
+					}
+				},
+				legend: {
+					show: false
+				},
+				axis: {
+					x: {
+						tick: {
+							fit: true,
+							multiline: false,
+							autorotate: true,
+							rotate: 20,
+							culling: false
+						},
+						type: "category",
+						categories: [
+							"loremIpsumDolorSitAmet", 
+							"consecteturAdipiscingElitSedDo",
+							"eiusmodTemporIncididuntUtLabore",
+							"etDoloreMagnaAliquaUtEnim",
+							"adMinimVeniamQuisNostrudExercitation",
+							"loremIpsumDolorSitAmet", 
+							"consecteturAdipiscingElitSedDo",
+							"eiusmodTemporIncididuntUtLabore",
+							"etDoloreMagnaAliquaUtEnim",
+							"adMinimVeniamQuisNostrudExercitation"
+						]
+					},
+					rotated: true
+				}
+			};
+		});
+
+		it("should specify all path values correctly.", () => {
+			chart.$.bar.bars.each(function(d) {
+				expect(this.getAttribute("d").indexOf("NaN") === -1).to.be.true;
+			});
 		});
 	});
 });
